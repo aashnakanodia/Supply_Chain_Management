@@ -1,0 +1,509 @@
+{
+  "info": {
+    "name": "TechVolt Electronics — Supply Chain API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",              "value": "http://localhost:3000/api/v1" },
+    { "key": "accessToken",          "value": "" },
+    { "key": "refreshToken",         "value": "" },
+    { "key": "bengaluruWarehouseId", "value": "" },
+    { "key": "puneWarehouseId",      "value": "" },
+    { "key": "chennaiWarehouseId",   "value": "" },
+    { "key": "mouserSupplierId",     "value": "" },
+    { "key": "electroSupplierId",    "value": "" },
+    { "key": "suntechSupplierId",    "value": "" },
+    { "key": "amaraSupplierId",      "value": "" },
+    { "key": "esp32ProductId",       "value": "" },
+    { "key": "stm32ProductId",       "value": "" },
+    { "key": "oledProductId",        "value": "" },
+    { "key": "pcbProductId",         "value": "" },
+    { "key": "inventoryItemId",      "value": "" },
+    { "key": "lowStockItemId",       "value": "" },
+    { "key": "firstPoId",            "value": "" },
+    { "key": "pendingPoId",          "value": "" },
+    { "key": "firstShipmentId",      "value": "" },
+    { "key": "inTransitShipmentId",  "value": "" },
+    { "key": "firstAlertId",         "value": "" },
+    { "key": "chatSessionId",        "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login as Admin (Rajesh Iyer)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) {",
+            "  pm.collectionVariables.set('accessToken', j.data.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', j.data.refreshToken);",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"r.iyer@techvolt.in\",\n  \"password\": \"RIyer@TechVolt26\"\n}" }
+          }
+        },
+        {
+          "name": "Login as Procurement (Ananya Krishnamurthy)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) {",
+            "  pm.collectionVariables.set('accessToken', j.data.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', j.data.refreshToken);",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"a.krishnamurthy@techvolt.in\",\n  \"password\": \"AKrishna@TechVolt26\"\n}" }
+          }
+        },
+        {
+          "name": "Login as Warehouse Staff Bengaluru (Suresh Babu)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) {",
+            "  pm.collectionVariables.set('accessToken', j.data.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', j.data.refreshToken);",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"s.babu@techvolt.in\",\n  \"password\": \"SBabu@TechVolt26\"\n}" }
+          }
+        },
+        {
+          "name": "Login as Warehouse Staff Pune (Pooja Deshmukh)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) {",
+            "  pm.collectionVariables.set('accessToken', j.data.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', j.data.refreshToken);",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"p.deshmukh@techvolt.in\",\n  \"password\": \"PDeshmukh@TechVolt26\"\n}" }
+          }
+        },
+        {
+          "name": "Login as Supplier Mouser (Vikram Mehta)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) {",
+            "  pm.collectionVariables.set('accessToken', j.data.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', j.data.refreshToken);",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"v.mehta@mouser-india.com\",\n  \"password\": \"VMehta@Mouser26\"\n}" }
+          }
+        },
+        {
+          "name": "Login as Viewer Finance (Karthik Sundaram)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) {",
+            "  pm.collectionVariables.set('accessToken', j.data.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', j.data.refreshToken);",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"k.sundaram@techvolt.in\",\n  \"password\": \"KSundaram@TechVolt26\"\n}" }
+          }
+        },
+        {
+          "name": "Get current user",
+          "request": { "method": "GET", "url": "{{baseUrl}}/auth/me" }
+        },
+        {
+          "name": "Refresh token",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) {",
+            "  pm.collectionVariables.set('accessToken', j.data.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', j.data.refreshToken);",
+            "}"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/auth/refresh",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" }
+          }
+        },
+        {
+          "name": "Register new user",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"arjun.sharma@techvolt.in\",\n  \"password\": \"Arjun@TechVolt26\",\n  \"firstName\": \"Arjun\",\n  \"lastName\": \"Sharma\",\n  \"role\": \"viewer\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Warehouses",
+      "item": [
+        {
+          "name": "List all warehouses",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) {",
+            "  j.data.warehouses.forEach(w => {",
+            "    if (w.city === 'Bengaluru') pm.collectionVariables.set('bengaluruWarehouseId', w.id);",
+            "    if (w.city === 'Pune')      pm.collectionVariables.set('puneWarehouseId', w.id);",
+            "    if (w.city === 'Chennai')   pm.collectionVariables.set('chennaiWarehouseId', w.id);",
+            "  });",
+            "}"
+          ]}}],
+          "request": { "method": "GET", "url": "{{baseUrl}}/warehouses" }
+        },
+        {
+          "name": "Get Bengaluru warehouse",
+          "request": { "method": "GET", "url": "{{baseUrl}}/warehouses/{{bengaluruWarehouseId}}" }
+        },
+        {
+          "name": "Create warehouse",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/warehouses",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Hyderabad Testing & QC Centre\",\n  \"address\": \"Plot 88, IDA Nacharam, IDPL Road\",\n  \"city\": \"Hyderabad\",\n  \"country\": \"India\",\n  \"capacity\": 25000\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suppliers",
+      "item": [
+        {
+          "name": "List all suppliers",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) {",
+            "  j.data.suppliers.forEach(s => {",
+            "    if (s.name.includes('Mouser'))            pm.collectionVariables.set('mouserSupplierId',  s.id);",
+            "    if (s.name.includes('Electrocomponents')) pm.collectionVariables.set('electroSupplierId', s.id);",
+            "    if (s.name.includes('SunTech'))           pm.collectionVariables.set('suntechSupplierId', s.id);",
+            "    if (s.name.includes('Amara Raja'))        pm.collectionVariables.set('amaraSupplierId',   s.id);",
+            "  });",
+            "}"
+          ]}}],
+          "request": { "method": "GET", "url": "{{baseUrl}}/suppliers" }
+        },
+        {
+          "name": "Get Mouser India",
+          "request": { "method": "GET", "url": "{{baseUrl}}/suppliers/{{mouserSupplierId}}" }
+        },
+        {
+          "name": "List Mouser India products",
+          "request": { "method": "GET", "url": "{{baseUrl}}/suppliers/{{mouserSupplierId}}/products" }
+        },
+        {
+          "name": "List SunTech PCB products",
+          "request": { "method": "GET", "url": "{{baseUrl}}/suppliers/{{suntechSupplierId}}/products" }
+        },
+        {
+          "name": "Create supplier",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/suppliers",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Bharat Electronics Components Ltd.\",\n  \"contactName\": \"Manoj Tiwari\",\n  \"email\": \"m.tiwari@becl.in\",\n  \"phone\": \"+91-11-2345-6789\",\n  \"address\": \"A-14, Flatted Factory Complex, Jhandewalan\",\n  \"city\": \"New Delhi\",\n  \"country\": \"India\",\n  \"paymentTerms\": \"Net 30\",\n  \"leadTimeDays\": 12\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List all products",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) {",
+            "  j.data.products.forEach(p => {",
+            "    if (p.sku === 'MCU-ESP32-WROOM32')    pm.collectionVariables.set('esp32ProductId', p.id);",
+            "    if (p.sku === 'MCU-STM32F103C8T6')    pm.collectionVariables.set('stm32ProductId', p.id);",
+            "    if (p.sku === 'DISP-OLED-096-128X64') pm.collectionVariables.set('oledProductId',  p.id);",
+            "    if (p.sku === 'PCB-FR4-100X80-2L')    pm.collectionVariables.set('pcbProductId',   p.id);",
+            "  });",
+            "}"
+          ]}}],
+          "request": { "method": "GET", "url": "{{baseUrl}}/products" }
+        },
+        {
+          "name": "Get ESP32 module",
+          "request": { "method": "GET", "url": "{{baseUrl}}/products/{{esp32ProductId}}" }
+        },
+        {
+          "name": "Search products — ESP32",
+          "request": { "method": "GET", "url": "{{baseUrl}}/products?search=ESP32" }
+        },
+        {
+          "name": "Filter — Microcontrollers",
+          "request": { "method": "GET", "url": "{{baseUrl}}/products?category=Microcontrollers" }
+        },
+        {
+          "name": "Filter — Displays",
+          "request": { "method": "GET", "url": "{{baseUrl}}/products?category=Displays" }
+        },
+        {
+          "name": "Create product",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/products",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"sku\": \"MCU-ATMEGA328P-AU\",\n  \"name\": \"ATmega328P-AU 8-bit AVR Microcontroller TQFP32\",\n  \"category\": \"Microcontrollers\",\n  \"unit\": \"piece\",\n  \"unitPrice\": 185.00,\n  \"reorderLevel\": 500,\n  \"leadTimeDays\": 10\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "List all inventory",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success && j.data.inventory.length > 0) {",
+            "  pm.collectionVariables.set('inventoryItemId', j.data.inventory[0].id);",
+            "}"
+          ]}}],
+          "request": { "method": "GET", "url": "{{baseUrl}}/inventory" }
+        },
+        {
+          "name": "List low-stock items",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success && j.data.inventory.length > 0) {",
+            "  pm.collectionVariables.set('lowStockItemId', j.data.inventory[0].id);",
+            "}"
+          ]}}],
+          "request": { "method": "GET", "url": "{{baseUrl}}/inventory?lowStock=true" }
+        },
+        {
+          "name": "Filter — Bengaluru warehouse",
+          "request": { "method": "GET", "url": "{{baseUrl}}/inventory?warehouseId={{bengaluruWarehouseId}}" }
+        },
+        {
+          "name": "Filter — Pune warehouse",
+          "request": { "method": "GET", "url": "{{baseUrl}}/inventory?warehouseId={{puneWarehouseId}}" }
+        },
+        {
+          "name": "Adjust stock",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/inventory/{{inventoryItemId}}/adjust",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 200,\n  \"reason\": \"Received stock from Mouser India — PO-2026-0002 partial delivery\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Purchase Orders",
+      "item": [
+        {
+          "name": "List all purchase orders",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success && j.data.purchaseOrders.length > 0) {",
+            "  pm.collectionVariables.set('firstPoId', j.data.purchaseOrders[0].id);",
+            "}"
+          ]}}],
+          "request": { "method": "GET", "url": "{{baseUrl}}/purchase-orders" }
+        },
+        {
+          "name": "Get PO detail",
+          "request": { "method": "GET", "url": "{{baseUrl}}/purchase-orders/{{firstPoId}}" }
+        },
+        {
+          "name": "Filter — pending approval",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success && j.data.purchaseOrders.length > 0) {",
+            "  pm.collectionVariables.set('pendingPoId', j.data.purchaseOrders[0].id);",
+            "}"
+          ]}}],
+          "request": { "method": "GET", "url": "{{baseUrl}}/purchase-orders?status=pending" }
+        },
+        {
+          "name": "Filter — ordered",
+          "request": { "method": "GET", "url": "{{baseUrl}}/purchase-orders?status=ordered" }
+        },
+        {
+          "name": "Filter — draft",
+          "request": { "method": "GET", "url": "{{baseUrl}}/purchase-orders?status=draft" }
+        },
+        {
+          "name": "Approve pending PO",
+          "request": { "method": "POST", "url": "{{baseUrl}}/purchase-orders/{{pendingPoId}}/approve" }
+        },
+        {
+          "name": "Create purchase order",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) pm.collectionVariables.set('firstPoId', j.data.id);"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/purchase-orders",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"supplierId\": \"{{mouserSupplierId}}\",\n  \"warehouseId\": \"{{bengaluruWarehouseId}}\",\n  \"expectedDate\": \"2026-08-15\",\n  \"notes\": \"Q3 restock — ESP32 modules for IoT-Pro V2 production batch\",\n  \"items\": [\n    { \"productId\": \"{{esp32ProductId}}\", \"quantity\": 500, \"unitPrice\": 188.00 }\n  ]\n}" }
+          }
+        },
+        {
+          "name": "Update PO status to ordered",
+          "request": {
+            "method": "PATCH", "url": "{{baseUrl}}/purchase-orders/{{firstPoId}}/status",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ordered\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shipments",
+      "item": [
+        {
+          "name": "List all shipments",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success && j.data.shipments.length > 0) {",
+            "  pm.collectionVariables.set('firstShipmentId', j.data.shipments[0].id);",
+            "}"
+          ]}}],
+          "request": { "method": "GET", "url": "{{baseUrl}}/shipments" }
+        },
+        {
+          "name": "Filter — in transit",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success && j.data.shipments.length > 0) {",
+            "  pm.collectionVariables.set('inTransitShipmentId', j.data.shipments[0].id);",
+            "}"
+          ]}}],
+          "request": { "method": "GET", "url": "{{baseUrl}}/shipments?status=in_transit" }
+        },
+        {
+          "name": "Get shipment detail",
+          "request": { "method": "GET", "url": "{{baseUrl}}/shipments/{{inTransitShipmentId}}" }
+        },
+        {
+          "name": "Create shipment",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) pm.collectionVariables.set('firstShipmentId', j.data.id);"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/shipments",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"purchaseOrderId\": \"{{firstPoId}}\",\n  \"warehouseId\": \"{{bengaluruWarehouseId}}\",\n  \"carrier\": \"Blue Dart Express\",\n  \"trackingNumber\": \"BD-1234567-DEL-BLR\",\n  \"expectedArrival\": \"2026-08-20\",\n  \"notes\": \"Dispatched from Mouser Mumbai warehouse\"\n}" }
+          }
+        },
+        {
+          "name": "Mark shipment as arrived",
+          "request": {
+            "method": "PATCH", "url": "{{baseUrl}}/shipments/{{inTransitShipmentId}}/status",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"arrived\",\n  \"actualArrival\": \"2026-07-08\",\n  \"notes\": \"Received at Pune dock. Initiating QC inspection.\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        {
+          "name": "List unresolved alerts",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success && j.data.alerts.length > 0) {",
+            "  pm.collectionVariables.set('firstAlertId', j.data.alerts[0].id);",
+            "}"
+          ]}}],
+          "request": { "method": "GET", "url": "{{baseUrl}}/alerts?isResolved=false" }
+        },
+        {
+          "name": "Filter — critical alerts",
+          "request": { "method": "GET", "url": "{{baseUrl}}/alerts?severity=critical" }
+        },
+        {
+          "name": "Filter — low stock alerts",
+          "request": { "method": "GET", "url": "{{baseUrl}}/alerts?type=low_stock" }
+        },
+        {
+          "name": "Mark alert as read",
+          "request": { "method": "PATCH", "url": "{{baseUrl}}/alerts/{{firstAlertId}}/read" }
+        },
+        {
+          "name": "Resolve alert",
+          "request": { "method": "PATCH", "url": "{{baseUrl}}/alerts/{{firstAlertId}}/resolve" }
+        },
+        {
+          "name": "Create alert",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/alerts",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"type\": \"low_stock\",\n  \"severity\": \"high\",\n  \"title\": \"IRLZ44N MOSFETs low — Pune Facility\",\n  \"message\": \"Current stock 1,800 units below reorder point of 2,000. Raise PO to Electrocomponents India immediately.\",\n  \"warehouseId\": \"{{puneWarehouseId}}\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "List my sessions",
+          "request": { "method": "GET", "url": "{{baseUrl}}/chat/sessions" }
+        },
+        {
+          "name": "Create session",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const j = pm.response.json();",
+            "if (j.success) pm.collectionVariables.set('chatSessionId', j.data.id);"
+          ]}}],
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/chat/sessions",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Low stock analysis — Bengaluru Plant\"\n}" }
+          }
+        },
+        {
+          "name": "Send message",
+          "request": {
+            "method": "POST", "url": "{{baseUrl}}/chat/sessions/{{chatSessionId}}/messages",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"content\": \"Which products at the Bengaluru plant are critically low and which purchase orders are already raised for them?\"\n}" }
+          }
+        },
+        {
+          "name": "Get messages",
+          "request": { "method": "GET", "url": "{{baseUrl}}/chat/sessions/{{chatSessionId}}/messages" }
+        },
+        {
+          "name": "Delete session",
+          "request": { "method": "DELETE", "url": "{{baseUrl}}/chat/sessions/{{chatSessionId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": { "method": "GET", "url": "http://localhost:3000/health" }
+        }
+      ]
+    }
+  ]
+}
