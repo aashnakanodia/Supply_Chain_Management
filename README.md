@@ -12,7 +12,7 @@ Full-stack supply chain management platform for Indian electronics distributors 
 **1. Install & configure**
 ```bash
 git clone https://github.com/aashnakanodia/Supply_Chain_Management.git
-cd Supply_Chain_Management
+cd Supply_Chain_Management/backend
 npm install
 cp .env.example .env   # fill in DB credentials + JWT secrets
 ```
@@ -26,11 +26,11 @@ npm run seed
 
 **3. Run**
 ```bash
-# Terminal 1 — backend
+# Terminal 1 — backend (from /backend)
 npm run dev
 
-# Terminal 2 — frontend
-cd frontend && npm install && npm run dev
+# Terminal 2 — frontend (from /frontend)
+cd ../frontend && npm install && npm run dev
 ```
 
 - Backend: `http://localhost:3000`
