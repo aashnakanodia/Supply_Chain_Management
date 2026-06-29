@@ -1,17 +1,28 @@
 # Supply Chain Management System
 
-A production-ready REST API for end-to-end supply chain operations built for **TechVolt Electronics Pvt. Ltd.** — an Indian electronics distributor. Features role-based access control, real-time WebSocket events, automated inventory alerts, and a full purchase order lifecycle.
+A full-stack supply chain platform built for **TechVolt Electronics Pvt. Ltd.** — an Indian electronics distributor. Features a React frontend, real-time WebSocket events, role-based access control, automated inventory alerts, a full purchase order lifecycle, and password reset via email.
 
 ---
 
 ## Tech Stack
 
+### Backend
 - **Runtime:** Node.js 18+
 - **Framework:** Express 4
 - **Database:** PostgreSQL 14+ (raw SQL via `pg`, no ORM)
 - **Auth:** JWT access tokens (15 min) + refresh tokens (7 days) · bcrypt (12 rounds)
 - **Real-Time:** Socket.io (role + warehouse scoped rooms)
+- **Email:** Resend API (password reset emails)
 - **Security:** Helmet · CORS · express-rate-limit
+
+### Frontend
+- **Framework:** React 18 + Vite
+- **Styling:** Plain CSS with CSS custom properties (no Tailwind)
+- **Routing:** React Router v6
+- **HTTP:** Axios with JWT interceptor + silent token refresh
+- **Real-Time:** Socket.io-client
+- **Charts:** Recharts
+- **Icons:** lucide-react
 
 ---
 
@@ -19,7 +30,7 @@ A production-ready REST API for end-to-end supply chain operations built for **T
 
 Organized in three strict layers — **Routes → Controllers → Services** — with all business logic and SQL confined to services. Data-scoping (restricting warehouse_staff to their warehouse, suppliers to their own records) is enforced inside every service using a `scope` object derived from the JWT, never from user-supplied request data.
 
-Real-time events use a Node.js `EventEmitter` as an internal bus — services emit events after every transaction commit, and Socket.io listens on the bus to broadcast to the correct rooms.
+Real-time events use a Node.js `EventEmitter` as an internal bus — services emit events after every transaction commit, and Socket.io listens on the bus to broadcast to the correct rooms. The React frontend subscribes to these events and updates the UI live without polling.
 
 ---
 
@@ -47,11 +58,28 @@ supply_chain_management/
 │       ├── scope.js            Derives data-scope from req.user
 │       ├── validate.js         Custom input validation (no external library)
 │       ├── audit.js            Writes to audit_logs after every mutation
+│       ├── mailer.js           Resend email integration (password reset)
 │       └── eventBus.js         EventEmitter singleton for real-time events
-├── migrations/                 16 numbered SQL migration files
-└── scripts/
-    ├── migrate.js              Runs pending migrations
-    └── seed.js                 Inserts Indian demo data + 5 role accounts
+├── migrations/                 17 numbered SQL migration files
+├── scripts/
+│   ├── migrate.js              Runs pending migrations
+│   └── seed.js                 Inserts Indian demo data + 5 role accounts
+└── frontend/
+    ├── index.html
+    ├── vite.config.js          Proxies /api → localhost:3000
+    └── src/
+        ├── App.jsx             Routes + public/private guards
+        ├── api/                Axios API layer (one file per resource)
+        ├── components/
+        │   ├── layout/         Sidebar, TopBar, AppLayout
+        │   └── ui/             Badge, Modal, Spinner, EmptyState
+        ├── context/            AuthContext (session restore, login, logout)
+        ├── hooks/              useSocket, useToast
+        ├── pages/              Landing, Auth, Dashboard, Inventory,
+        │                       PurchaseOrders, Shipments, Alerts,
+        │                       Users, ResetPassword
+        └── utils/
+            └── formatters.js   INR formatting, date, role labels
 ```
 
 ---
@@ -70,8 +98,34 @@ npm install
 
 ```bash
 cp .env.example .env
-# Edit .env — fill in DB credentials and generate JWT secrets:
-#   node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+Edit `.env` and fill in all values:
+
+```env
+PORT=3000
+NODE_ENV=development
+
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_NAME=supply_chain_db
+DB_USER=postgres
+DB_PASSWORD=your_password
+
+# Generate with: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+JWT_ACCESS_SECRET=
+JWT_REFRESH_SECRET=
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+CLIENT_URL=http://localhost:5173
+APP_URL=http://localhost:5173
+
+# Resend (https://resend.com) — for password reset emails
+RESEND_API_KEY=re_your_key_here
+RESEND_FROM=TechVolt SCM <onboarding@resend.dev>
+
+ANTHROPIC_API_KEY=sk-ant-your_key_here
 ```
 
 ### 3. Create the database
@@ -92,15 +146,41 @@ npm run migrate
 npm run seed
 ```
 
-### 6. Start the server
+### 6. Start the backend
 
 ```bash
-npm run dev     # development (hot reload)
+npm run dev     # development (nodemon hot reload)
 npm start       # production
 ```
 
-Server: `http://localhost:3000/api/v1`  
+Backend API: `http://localhost:3000/api/v1`  
 WebSocket: `ws://localhost:3000`
+
+### 7. Start the frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend: `http://localhost:5173`
+
+---
+
+## Pages
+
+| Page | Path | Access |
+|---|---|---|
+| Landing | `/` | Public |
+| Sign In / Create Account | `/auth` | Public |
+| Reset Password | `/reset-password` | Public |
+| Dashboard | `/dashboard` | All roles |
+| Inventory | `/inventory` | All roles |
+| Purchase Orders | `/purchase-orders` | All roles |
+| Shipments | `/shipments` | All roles |
+| Alerts | `/alerts` | All roles |
+| Users | `/users` | Admin only |
 
 ---
 
@@ -109,7 +189,7 @@ WebSocket: `ws://localhost:3000`
 All responses follow a consistent shape:
 
 ```json
-{ "success": true, "data": { ... } }
+{ "success": true,  "data": { ... } }
 { "success": false, "error": { "message": "...", "code": "ERROR_CODE" } }
 ```
 
@@ -127,6 +207,18 @@ All responses follow a consistent shape:
 | Stock Movements | `/api/v1/stock-movements` |
 | Dashboard | `/api/v1/dashboard` |
 | Audit Logs | `/api/v1/audit-logs` |
+
+### Auth endpoints
+
+| Method | Path | Description |
+|---|---|---|
+| POST | `/auth/register` | Create account |
+| POST | `/auth/login` | Sign in |
+| POST | `/auth/refresh` | Refresh access token |
+| GET | `/auth/me` | Get current user |
+| POST | `/auth/change-password` | Change password |
+| POST | `/auth/forgot-password` | Send reset email |
+| POST | `/auth/reset-password` | Reset with token |
 
 ---
 
@@ -156,7 +248,7 @@ Events are broadcast only to rooms the user belongs to (`role:admin`, `warehouse
 
 | Role | Key Capabilities |
 |---|---|
-| `admin` | Full access to everything |
+| `admin` | Full access to everything including user management |
 | `procurement_manager` | Create/approve POs, manage shipments, view all |
 | `warehouse_staff` | Adjust inventory and manage shipments for their warehouse only |
 | `supplier` | View their own POs, shipments, and product catalogue |
@@ -180,11 +272,26 @@ Events are broadcast only to rooms the user belongs to (`role:admin`, `warehouse
 
 ```
 Create PO (pending)
-  → Approve PO (approved)        [PO_APPROVED event]
-  → Mark as Ordered (ordered)    [PO_STATUS_CHANGED event]
+  → Approve PO (approved)          [PO_APPROVED event]
+  → Mark as Ordered (ordered)      [PO_STATUS_CHANGED event]
   → Create Shipment
-  → Update Shipment to in_transit [SHIPMENT_STATUS_CHANGED event]
+  → Update Shipment to in_transit  [SHIPMENT_STATUS_CHANGED event]
   → Mark PO as Received (received)
-      → Auto credits inventory    [INVENTORY_CHANGED event]
+      → Auto credits inventory     [INVENTORY_CHANGED event]
       → Auto resolves low-stock alerts [ALERT_RESOLVED event]
 ```
+
+---
+
+## Password Reset Flow
+
+```
+Forgot password? link on sign-in
+  → Enter email → POST /auth/forgot-password
+  → Resend sends branded HTML email with 1-hour token link
+  → User clicks link → /reset-password?token=xxx
+  → Enter new password → POST /auth/reset-password
+  → Token marked used → redirect to sign in
+```
+
+> If `RESEND_API_KEY` is not set, the reset link is printed to the backend terminal (useful for local development).
