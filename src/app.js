@@ -41,6 +41,10 @@ const limiter = rateLimit({
   standardHeaders: true,
   legacyHeaders:   false,
   message: { success: false, error: { message: 'Too many requests', code: 'TOO_MANY_REQUESTS' } },
+  skip: (req) => {
+    const ip = req.ip || req.socket?.remoteAddress || '';
+    return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+  },
 });
 app.use('/api', limiter);
 

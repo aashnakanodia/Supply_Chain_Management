@@ -1,0 +1,208 @@
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.22s cubic-bezier(0.4,0,0.2,1), min-width 0.22s;
+  overflow: hidden;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+}
+
+.sidebar--collapsed {
+  width: 64px;
+  min-width: 64px;
+}
+
+/* Logo */
+.sidebar__logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.sidebar__logo-icon {
+  width: 32px; height: 32px;
+  background: rgba(14,159,153,0.2);
+  border: 1px solid rgba(14,159,153,0.35);
+  border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  color: #2dd4cc;
+  flex-shrink: 0;
+}
+
+.sidebar__logo-text {
+  font-size: 14px;
+  color: rgba(255,255,255,0.75);
+  white-space: nowrap;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.sidebar__logo-text strong { color: white; font-weight: 800; }
+
+/* Nav */
+.sidebar__nav {
+  flex: 1;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--r-sm);
+  color: rgba(255,255,255,0.55);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
+  position: relative;
+}
+
+.sidebar__item:hover {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.9);
+}
+
+.sidebar__item--active {
+  background: rgba(14,159,153,0.18);
+  color: #2dd4cc;
+}
+.sidebar__item--active::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 6px; bottom: 6px;
+  width: 3px;
+  background: var(--primary);
+  border-radius: 0 2px 2px 0;
+}
+
+.sidebar__item-icon {
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.sidebar__item-label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar__alert-dot {
+  position: absolute;
+  top: -2px; right: -2px;
+  width: 7px; height: 7px;
+  background: var(--danger);
+  border-radius: 50%;
+  border: 1.5px solid var(--navy);
+  animation: pulse 1.5s infinite;
+}
+
+.sidebar__badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--danger);
+  color: white;
+  padding: 1px 6px;
+  border-radius: var(--r-full);
+  line-height: 1.6;
+}
+
+/* Bottom */
+.sidebar__bottom {
+  padding: 8px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sidebar__collapse-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  border-radius: var(--r-sm);
+  color: rgba(255,255,255,0.35);
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.sidebar__collapse-btn:hover {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+}
+
+.sidebar__user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+}
+
+.sidebar__avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(14,159,153,0.25);
+  border: 1.5px solid rgba(14,159,153,0.4);
+  color: #2dd4cc;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.05em;
+}
+
+.sidebar__user-info { flex: 1; overflow: hidden; }
+.sidebar__user-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar__user-role {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  white-space: nowrap;
+}
+
+.sidebar__logout {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.3);
+  width: 28px; height: 28px;
+  border-radius: var(--r-xs);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.sidebar__logout:hover {
+  background: rgba(239,68,68,0.15);
+  color: #f87171;
+}

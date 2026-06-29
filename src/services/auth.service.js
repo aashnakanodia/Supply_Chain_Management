@@ -1,7 +1,9 @@
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const db = require('../config/database');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../utils/tokens');
 const AppError = require('../utils/AppError');
+const { sendPasswordResetEmail } = require('../utils/mailer');
 
 const BCRYPT_ROUNDS = 12;
 
@@ -122,4 +124,43 @@ async function changePassword(userId, { currentPassword, newPassword }) {
   return { message: 'Password changed successfully' };
 }
 
-module.exports = { register, login, refreshTokens, changePassword };
+async function forgotPassword(email) {
+  const { rows } = await db.query(
+    `SELECT id, first_name FROM users WHERE email = $1 AND is_active = TRUE`,
+    [email],
+  );
+  // Always silently succeed — don't reveal whether email is registered
+  if (!rows[0]) return;
+
+  const user = rows[0];
+  // Invalidate any previous unused tokens
+  await db.query('DELETE FROM password_reset_tokens WHERE user_id = $1', [user.id]);
+
+  const token     = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  await db.query(
+    'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)',
+    [user.id, token, expiresAt],
+  );
+
+  const appUrl   = process.env.APP_URL || 'http://localhost:5173';
+  const resetUrl = `${appUrl}/reset-password?token=${token}`;
+  await sendPasswordResetEmail({ to: email, name: user.first_name, resetUrl });
+}
+
+async function resetPassword(token, newPassword) {
+  const { rows } = await db.query(
+    `SELECT id, user_id FROM password_reset_tokens
+     WHERE token = $1 AND used = FALSE AND expires_at > NOW()`,
+    [token],
+  );
+  if (!rows[0]) throw new AppError('Reset link is invalid or has expired.', 400, 'INVALID_TOKEN');
+
+  const { id: tokenId, user_id } = rows[0];
+  const hash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+
+  await db.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [hash, user_id]);
+  await db.query('UPDATE password_reset_tokens SET used = TRUE WHERE id = $1', [tokenId]);
+}
+
+module.exports = { register, login, refreshTokens, changePassword, forgotPassword, resetPassword };

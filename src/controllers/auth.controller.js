@@ -40,4 +40,24 @@ const changePassword = asyncHandler(async (req, res) => {
   res.json({ success: true, data: result });
 });
 
-module.exports = { register, login, refresh, me, changePassword };
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email || !/\S+@\S+\.\S+/.test(email)) {
+    return res.status(400).json({ success: false, error: { message: 'Valid email is required', code: 'VALIDATION_ERROR' } });
+  }
+  await authService.forgotPassword(email.trim().toLowerCase());
+  // Always 200 — never leak whether email exists
+  res.json({ success: true, data: { message: 'If that email is registered, a reset link has been sent.' } });
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token, newPassword } = req.body;
+  if (!token)       return res.status(400).json({ success: false, error: { message: 'Token is required', code: 'VALIDATION_ERROR' } });
+  if (!newPassword || newPassword.length < 8) {
+    return res.status(400).json({ success: false, error: { message: 'Password must be at least 8 characters', code: 'VALIDATION_ERROR' } });
+  }
+  await authService.resetPassword(token, newPassword);
+  res.json({ success: true, data: { message: 'Password reset successfully. You can now sign in.' } });
+});
+
+module.exports = { register, login, refresh, me, changePassword, forgotPassword, resetPassword };
