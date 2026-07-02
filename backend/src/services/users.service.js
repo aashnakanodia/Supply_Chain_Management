@@ -66,8 +66,10 @@ async function updateProfile(id, { firstName, lastName }, scope) {
 }
 
 async function setActive(id, isActive, scope) {
-  if (scope.role !== 'admin') throw new AppError('Access denied', 403, 'FORBIDDEN');
-  if (scope.userId === id)    throw new AppError('Cannot deactivate your own account', 422);
+  if (scope.role !== 'admin' && scope.role !== 'procurement_manager') {
+    throw new AppError('Access denied', 403, 'FORBIDDEN');
+  }
+  if (scope.userId === id) throw new AppError('Cannot deactivate your own account', 422);
 
   const { rows } = await db.query(
     `UPDATE users SET is_active = $1, updated_at = NOW() WHERE id = $2
@@ -78,14 +80,23 @@ async function setActive(id, isActive, scope) {
   return rows[0];
 }
 
-async function changeRole(id, role, scope) {
-  if (scope.role !== 'admin') throw new AppError('Access denied', 403, 'FORBIDDEN');
-  if (scope.userId === id)    throw new AppError('Cannot change your own role', 422);
+async function changeRole(id, role, { warehouseId, supplierId } = {}, scope) {
+  if (scope.role !== 'admin' && scope.role !== 'procurement_manager') {
+    throw new AppError('Access denied', 403, 'FORBIDDEN');
+  }
+  if (scope.userId === id) throw new AppError('Cannot change your own role', 422);
 
+  // Clear the foreign-key that no longer applies; set the one that does.
+  // DB constraints enforce: warehouse_staff requires warehouse_id, supplier requires supplier_id.
   const { rows } = await db.query(
-    `UPDATE users SET role = $1, updated_at = NOW() WHERE id = $2
+    `UPDATE users
+     SET role         = $1,
+         warehouse_id = CASE WHEN $1 = 'warehouse_staff' THEN $2::uuid ELSE NULL END,
+         supplier_id  = CASE WHEN $1 = 'supplier'        THEN $3::uuid ELSE NULL END,
+         updated_at   = NOW()
+     WHERE id = $4
      RETURNING id, email, role, warehouse_id, supplier_id`,
-    [role, id],
+    [role, warehouseId || null, supplierId || null, id],
   );
   if (!rows[0]) throw new AppError('User not found', 404, 'NOT_FOUND');
   return rows[0];

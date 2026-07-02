@@ -126,7 +126,7 @@ async function create({ supplierId, warehouseId, notes, expectedDate, items }, s
 }
 
 async function approve(id, scope) {
-  if (scope.role !== 'admin' && scope.role !== 'procurement_manager') {
+  if (scope.role !== 'admin') {
     throw new AppError('Access denied', 403, 'FORBIDDEN');
   }
 
@@ -143,9 +143,24 @@ async function approve(id, scope) {
   return po;
 }
 
-async function updateStatus(id, status, scope) {
+async function updateStatus(id, status, scope, notes) {
   if (scope.role !== 'admin' && scope.role !== 'procurement_manager') {
     throw new AppError('Access denied', 403, 'FORBIDDEN');
+  }
+
+  // Manual 'received' is only an emergency admin path — require at least one non-cancelled shipment.
+  // The normal path is: shipment → delivered → auto-advances PO to received.
+  if (status === 'received') {
+    const { rows: existing } = await db.query(
+      `SELECT id FROM shipments WHERE purchase_order_id = $1 AND status != 'cancelled' LIMIT 1`,
+      [id],
+    );
+    if (existing.length === 0) {
+      throw new AppError(
+        "Cannot mark as received: no active shipment exists. Create a shipment and mark it delivered instead.",
+        422, 'VALIDATION_ERROR',
+      );
+    }
   }
 
   const client = await db.getClient();
@@ -153,8 +168,8 @@ async function updateStatus(id, status, scope) {
     await client.query('BEGIN');
 
     const { rows } = await client.query(
-      `UPDATE purchase_orders SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
-      [status, id],
+      `UPDATE purchase_orders SET status = $1, notes = COALESCE($3, notes), updated_at = NOW() WHERE id = $2 RETURNING *`,
+      [status, id, notes || null],
     );
     if (!rows[0]) throw new AppError('Purchase order not found', 404, 'NOT_FOUND');
     const po = rows[0];

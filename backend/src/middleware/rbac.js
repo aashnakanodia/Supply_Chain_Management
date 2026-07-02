@@ -13,7 +13,7 @@ const ROLE_PERMISSIONS = {
     'suppliers:read', 'suppliers:write',
     'warehouses:read', 'warehouses:write',
     'supplier_products:read', 'supplier_products:write',
-    'purchase_orders:read', 'purchase_orders:write', 'purchase_orders:approve',
+    'purchase_orders:read', 'purchase_orders:write',
     'purchase_order_items:read', 'purchase_order_items:write',
     'shipments:read', 'shipments:write',
     'inventory:read',

@@ -41,9 +41,9 @@ const setActive = asyncHandler(async (req, res) => {
 
 const changeRole = asyncHandler(async (req, res) => {
   v.validateChangeRole(req.body);
-  const { role } = req.body;
-  const user = await usersService.changeRole(req.params.id, role, buildScope(req.user));
-  await writeAudit({ userId: req.user.id, action: 'CHANGE_ROLE', tableName: 'users', recordId: req.params.id, newValues: { role }, ipAddress: req.ip, userAgent: req.headers['user-agent'] });
+  const { role, warehouseId, supplierId } = req.body;
+  const user = await usersService.changeRole(req.params.id, role, { warehouseId, supplierId }, buildScope(req.user));
+  await writeAudit({ userId: req.user.id, action: 'CHANGE_ROLE', tableName: 'users', recordId: req.params.id, newValues: { role, warehouseId, supplierId }, ipAddress: req.ip, userAgent: req.headers['user-agent'] });
   res.json({ success: true, data: user });
 });
 

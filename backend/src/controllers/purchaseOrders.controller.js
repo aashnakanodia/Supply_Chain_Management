@@ -33,8 +33,8 @@ const approve = asyncHandler(async (req, res) => {
 
 const updateStatus = asyncHandler(async (req, res) => {
   v.validateUpdatePOStatus(req.body);
-  const { status } = req.body;
-  const po = await poService.updateStatus(req.params.id, status, buildScope(req.user));
+  const { status, notes } = req.body;
+  const po = await poService.updateStatus(req.params.id, status, buildScope(req.user), notes);
   await writeAudit({ userId: req.user.id, action: 'UPDATE_PO_STATUS', tableName: 'purchase_orders', recordId: req.params.id, newValues: { status }, ipAddress: req.ip, userAgent: req.headers['user-agent'] });
   res.json({ success: true, data: po });
 });

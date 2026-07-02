@@ -2,7 +2,7 @@ const AppError = require('./AppError');
 
 const VALID_ROLES     = ['admin', 'procurement_manager', 'warehouse_staff', 'supplier', 'viewer'];
 const VALID_PO_STATUS = ['draft', 'pending', 'approved', 'ordered', 'received', 'cancelled'];
-const VALID_SHP_STATUS = ['pending', 'in_transit', 'arrived', 'completed', 'cancelled'];
+const VALID_SHP_STATUS = ['pending', 'in_transit', 'arrived', 'completed', 'delivered', 'cancelled'];
 const VALID_ALERT_TYPES = ['low_stock', 'overstock', 'expiry', 'delayed_shipment', 'system'];
 const VALID_SEVERITIES  = ['low', 'medium', 'high', 'critical'];
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -223,8 +223,19 @@ function validateSetActive(body) {
 }
 
 function validateChangeRole(body) {
-  required(body.role, 'role');
-  isOneOf(body.role, 'role', VALID_ROLES);
+  const { role, warehouseId, supplierId } = body;
+  required(role, 'role');
+  isOneOf(role, 'role', VALID_ROLES);
+  if (role === 'warehouse_staff') {
+    required(warehouseId, 'warehouseId');
+    isUUID(warehouseId, 'warehouseId');
+  }
+  if (role === 'supplier') {
+    required(supplierId, 'supplierId');
+    isUUID(supplierId, 'supplierId');
+  }
+  if (warehouseId) isUUID(warehouseId, 'warehouseId');
+  if (supplierId)  isUUID(supplierId,  'supplierId');
 }
 
 module.exports = {

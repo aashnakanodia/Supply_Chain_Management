@@ -9,7 +9,7 @@ async function getSummary(scope) {
   const alertWhFilter = whId ? 'AND (a.warehouse_id = $1 OR a.warehouse_id IS NULL)'    : '';
   const p             = whId ? [whId] : [];
 
-  const [products, lowStock, pendingPOs, openAlerts, inTransit, recentMovements, warehouses] =
+  const [products, lowStock, pendingPOs, openAlerts, inTransit, recentMovements, warehouses, poPipeline] =
     await Promise.all([
       db.query(`SELECT COUNT(*) FROM products WHERE is_active = TRUE`),
 
@@ -45,6 +45,11 @@ async function getSummary(scope) {
       isWarehouseStaff
         ? Promise.resolve({ rows: [] })
         : db.query(`SELECT COUNT(*) FROM warehouses WHERE is_active = TRUE`),
+
+      db.query(
+        `SELECT status, COUNT(*) AS count FROM purchase_orders ${whId ? 'WHERE warehouse_id = $1' : ''} GROUP BY status`,
+        whId ? [whId] : [],
+      ),
     ]);
 
   const alertsBySeverity = {};
@@ -66,6 +71,7 @@ async function getSummary(scope) {
     shipments: { inTransit: parseInt(inTransit.rows[0].count, 10) },
     ...(isWarehouseStaff ? {} : { warehouses: { total: parseInt(warehouses.rows[0].count, 10) } }),
     recentStockMovements: recentMovements.rows,
+    poPipeline: Object.fromEntries(poPipeline.rows.map((r) => [r.status, parseInt(r.count, 10)])),
   };
 }
 
