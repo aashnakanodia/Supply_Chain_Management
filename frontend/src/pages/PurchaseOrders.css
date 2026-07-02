@@ -1,0 +1,88 @@
+/* ── PO create / shipment modals ────────────────────────────────────────── */
+.po-form { display: flex; flex-direction: column; gap: 16px; }
+
+.po-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 540px) { .po-form-row { grid-template-columns: 1fr; } }
+
+.po-form-field { display: flex; flex-direction: column; gap: 6px; }
+
+/* Line items table */
+.po-items-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.po-items {
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+}
+
+.po-items-header {
+  display: grid;
+  grid-template-columns: 1fr 80px 120px 110px 36px;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.po-item-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 120px 110px 36px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.po-item-row:last-of-type { border-bottom: none; }
+
+.po-item-subtotal {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-2);
+  text-align: right;
+}
+
+.po-remove-btn {
+  width: 28px; height: 28px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--text-3);
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.po-remove-btn:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); background: var(--danger-bg); }
+.po-remove-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.po-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-top: 1.5px solid var(--border);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.po-total-val {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-1);
+}

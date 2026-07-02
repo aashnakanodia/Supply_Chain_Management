@@ -31,12 +31,17 @@ function PrivateRoute({ children }) {
 function PublicRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return null
-  return user ? <Navigate to="/dashboard" replace /> : children
+  if (!user) return children
+  const dest = user.role === 'supplier' ? '/purchase-orders' : '/dashboard'
+  return <Navigate to={dest} replace />
 }
 
-function AdminRoute({ children }) {
+function RoleRoute({ children, roles }) {
   const { user } = useAuth()
-  if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />
+  if (!roles.includes(user?.role)) {
+    const fallback = user?.role === 'supplier' ? '/purchase-orders' : '/dashboard'
+    return <Navigate to={fallback} replace />
+  }
   return children
 }
 
@@ -50,12 +55,12 @@ function AppRoutes() {
 
       {/* Private app */}
       <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
-        <Route path="/dashboard"       element={<Dashboard />} />
-        <Route path="/inventory"       element={<Inventory />} />
+        <Route path="/dashboard"       element={<RoleRoute roles={['admin','procurement_manager','warehouse_staff','viewer']}><Dashboard /></RoleRoute>} />
+        <Route path="/inventory"       element={<RoleRoute roles={['admin','procurement_manager','warehouse_staff','viewer']}><Inventory /></RoleRoute>} />
         <Route path="/purchase-orders" element={<PurchaseOrders />} />
         <Route path="/shipments"       element={<Shipments />} />
-        <Route path="/alerts"          element={<Alerts />} />
-        <Route path="/users"           element={<AdminRoute><Users /></AdminRoute>} />
+        <Route path="/alerts"          element={<RoleRoute roles={['admin','procurement_manager','warehouse_staff','viewer']}><Alerts /></RoleRoute>} />
+        <Route path="/users"           element={<RoleRoute roles={['admin','procurement_manager']}><Users /></RoleRoute>} />
       </Route>
 
       {/* Fallback */}

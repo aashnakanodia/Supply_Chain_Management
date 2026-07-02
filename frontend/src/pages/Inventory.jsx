@@ -9,6 +9,7 @@ import Spinner from '../components/ui/Spinner'
 import EmptyState from '../components/ui/EmptyState'
 import useSocket from '../hooks/useSocket'
 import { useToast } from '../hooks/useToast'
+import { useAuth } from '../context/AuthContext'
 import './AppPage.css'
 
 function StockBar({ qty, reorder }) {
@@ -49,6 +50,8 @@ export default function Inventory() {
   const [adjReason, setAdjReason] = useState('')
   const [adjLoading, setAdjLoading] = useState(false)
   const { toast } = useToast()
+  const { user }  = useAuth()
+  const canAdjust = ['admin', 'procurement_manager', 'warehouse_staff'].includes(user?.role)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -138,7 +141,7 @@ export default function Inventory() {
                 <th>Reorder Point</th>
                 <th>Status</th>
                 <th>Last Updated</th>
-                <th></th>
+                {canAdjust && <th></th>}
               </tr>
             </thead>
             <tbody>
@@ -159,11 +162,13 @@ export default function Inventory() {
                     </Badge>
                   </td>
                   <td className="page-td-muted">{formatTimeAgo(item.updated_at)}</td>
-                  <td>
-                    <button className="page-action-btn" onClick={() => openAdj(item)}>
-                      Adjust
-                    </button>
-                  </td>
+                  {canAdjust && (
+                    <td>
+                      <button className="page-action-btn" onClick={() => openAdj(item)}>
+                        Adjust
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

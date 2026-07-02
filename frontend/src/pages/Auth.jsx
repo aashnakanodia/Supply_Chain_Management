@@ -87,6 +87,7 @@ export default function Auth() {
     setErrors({})
     setLoading(true)
     try {
+      let loggedIn
       if (mode === 'signup') {
         await apiRegister({
           firstName: form.firstName.trim(),
@@ -95,11 +96,12 @@ export default function Auth() {
           password:  form.password,
           role:      form.role,
         })
-        await login(form.email.trim().toLowerCase(), form.password)
+        loggedIn = await login(form.email.trim().toLowerCase(), form.password)
       } else {
-        await login(form.email.trim().toLowerCase(), form.password)
+        loggedIn = await login(form.email.trim().toLowerCase(), form.password)
       }
-      navigate('/dashboard', { replace: true })
+      const dest = loggedIn?.role === 'supplier' ? '/purchase-orders' : '/dashboard'
+      navigate(dest, { replace: true })
     } catch (err) {
       if (!err.response) {
         setGlobalErr('Cannot connect to server. Make sure the backend is running on port 3000.')

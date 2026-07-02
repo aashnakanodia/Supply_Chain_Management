@@ -71,3 +71,11 @@
   gap: 8px;
   margin-top: 4px;
 }
+
+.alert-create-po-btn {
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+.alert-create-po-btn:hover {
+  background: var(--primary-light) !important;
+}

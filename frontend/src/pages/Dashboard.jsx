@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import {
-  Package, AlertTriangle, ShoppingCart, Truck, Warehouse,
-  TrendingDown, ArrowUpRight, ArrowDownRight
+  Package, AlertTriangle, ShoppingCart, Truck, Warehouse, TrendingDown,
+  ArrowUpRight
 } from 'lucide-react'
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid
+} from 'recharts'
 import { getDashboard } from '../api/dashboard'
 import { formatINR, formatTimeAgo } from '../utils/formatters'
 import Badge from '../components/ui/Badge'
@@ -18,16 +23,23 @@ const SEVERITY_COLORS = {
   low:      '#64748b',
 }
 
+const PIPELINE_STEPS = [
+  { key: 'pending',    label: 'Pending',    color: '#d97706' },
+  { key: 'approved',   label: 'Approved',   color: '#2563eb' },
+  { key: 'ordered',    label: 'Ordered',    color: '#7c3aed' },
+  { key: 'received',   label: 'Received',   color: '#16a34a' },
+  { key: 'cancelled',  label: 'Cancelled',  color: '#94a3b8' },
+]
+
 function KpiCard({ icon: Icon, label, value, sub, variant = 'default', loading }) {
   const variants = {
-    default: { bg: 'var(--surface)', border: 'var(--border)',         icon: 'var(--primary-light)',   iconColor: 'var(--primary)' },
-    warning: { bg: '#fffdf5',        border: 'var(--warning-border)',  icon: 'var(--warning-bg)',      iconColor: 'var(--warning)' },
-    danger:  { bg: '#fff8f8',        border: 'var(--danger-border)',   icon: 'var(--danger-bg)',       iconColor: 'var(--danger)'  },
-    success: { bg: '#f5fef9',        border: 'var(--success-border)',  icon: 'var(--success-bg)',      iconColor: 'var(--success)' },
-    navy:    { bg: 'var(--surface)', border: 'var(--border)',          icon: 'rgba(13,31,60,0.07)',    iconColor: 'var(--navy)'    },
+    default: { bg: 'var(--surface)', border: 'var(--border)',         icon: 'var(--primary-light)',  iconColor: 'var(--primary)' },
+    warning: { bg: '#fffdf5',        border: 'var(--warning-border)', icon: 'var(--warning-bg)',     iconColor: 'var(--warning)' },
+    danger:  { bg: '#fff8f8',        border: 'var(--danger-border)',  icon: 'var(--danger-bg)',      iconColor: 'var(--danger)'  },
+    success: { bg: '#f5fef9',        border: 'var(--success-border)', icon: 'var(--success-bg)',     iconColor: 'var(--success)' },
+    navy:    { bg: 'var(--surface)', border: 'var(--border)',         icon: 'rgba(13,31,60,0.07)',   iconColor: 'var(--navy)'    },
   }
   const v = variants[variant]
-
   return (
     <div className="kpi-card" style={{ background: v.bg, borderColor: v.border }}>
       <div className="kpi-card__icon" style={{ background: v.icon, color: v.iconColor }}>
@@ -45,11 +57,52 @@ function KpiCard({ icon: Icon, label, value, sub, variant = 'default', loading }
   )
 }
 
+function PipelineStrip({ pipeline, loading, onCreatePO }) {
+  const total = Object.values(pipeline).reduce((a, b) => a + b, 0) || 1
+  return (
+    <div className="pipeline-strip">
+      <div className="pipeline-strip__head">
+        <h2 className="dash-card__title">Purchase Order Pipeline</h2>
+        {onCreatePO && (
+          <button className="pipeline-create-btn" onClick={onCreatePO}>
+            <ShoppingCart size={14} /> New PO
+          </button>
+        )}
+      </div>
+      <div className="pipeline-steps">
+        {PIPELINE_STEPS.map(({ key, label, color }, i) => {
+          const count = pipeline[key] ?? 0
+          const pct   = Math.round((count / total) * 100)
+          return (
+            <div key={key} className="pipeline-step">
+              {i > 0 && <div className="pipeline-arrow">›</div>}
+              <div className="pipeline-step__box">
+                <div className="pipeline-step__bar-wrap">
+                  <div className="pipeline-step__bar"
+                    style={{ width: `${Math.max(pct, count > 0 ? 8 : 0)}%`, background: color }} />
+                </div>
+                {loading
+                  ? <div className="skeleton" style={{ height: 22, width: 36, borderRadius: 4 }} />
+                  : <span className="pipeline-step__count" style={{ color }}>{count}</span>
+                }
+                <span className="pipeline-step__label">{label}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 const MOVE_TYPE_COLOR = { IN: 'success', OUT: 'danger', ADJUSTMENT: 'info' }
 
 export default function Dashboard() {
   const [data,    setData]    = useState(null)
   const [loading, setLoading] = useState(true)
+  const navigate  = useNavigate()
+  const { user }  = useAuth()
+  const canCreatePO = ['admin', 'procurement_manager'].includes(user?.role)
 
   const load = () => {
     setLoading(true)
@@ -70,28 +123,45 @@ export default function Dashboard() {
     SHIPMENT_STATUS_CHANGED: () => load(),
   })
 
-  const alerts = data?.openAlerts ?? {}
+  const alerts = data?.alerts ?? {}
   const pieData = ['critical','high','medium','low']
-    .filter((k) => alerts[k] > 0)
-    .map((k) => ({ name: k.charAt(0).toUpperCase() + k.slice(1), value: alerts[k], color: SEVERITY_COLORS[k] }))
+    .filter((k) => (alerts.bySeverity?.[k] ?? 0) > 0)
+    .map((k) => ({ name: k.charAt(0).toUpperCase() + k.slice(1), value: alerts.bySeverity[k], color: SEVERITY_COLORS[k] }))
 
-  const movements = data?.recentMovements ?? []
+  const movements = data?.recentStockMovements ?? []
   const barData = movements.slice(0, 7).map((m) => ({
-    name: m.product_name?.split(' ').slice(0,2).join(' ') ?? '—',
+    name: m.product_name?.split(' ').slice(0, 2).join(' ') ?? '—',
     qty:  Math.abs(m.quantity ?? 0),
     type: m.movement_type,
   }))
+
+  const pipeline = data?.poPipeline ?? {}
 
   return (
     <div className="dashboard">
       {/* KPI row */}
       <div className="dashboard__kpis">
-        <KpiCard loading={loading} icon={Package}        label="Total Products"     value={data?.totalProducts ?? 0}              variant="default" />
-        <KpiCard loading={loading} icon={TrendingDown}   label="Low Stock Items"    value={data?.lowStockItems ?? 0}              variant={data?.lowStockItems > 0 ? 'warning' : 'default'} sub={data?.lowStockItems > 0 ? 'Need restocking' : 'All levels healthy'} />
-        <KpiCard loading={loading} icon={ShoppingCart}   label="Pending POs"        value={data?.pendingPOs?.count ?? 0}          sub={formatINR(data?.pendingPOs?.totalValue)} variant="default" />
-        <KpiCard loading={loading} icon={AlertTriangle}  label="Open Alerts"        value={data?.openAlerts?.total ?? 0}          variant={data?.openAlerts?.total > 0 ? 'danger' : 'default'} sub={data?.openAlerts?.critical > 0 ? `${data.openAlerts.critical} critical` : undefined} />
-        <KpiCard loading={loading} icon={Truck}          label="In Transit"         value={data?.shipmentsInTransit ?? 0}         variant="navy" sub="Shipments active" />
-        <KpiCard loading={loading} icon={Warehouse}      label="Warehouses"         value={data?.totalWarehouses ?? 0}            variant="success" />
+        <KpiCard loading={loading} icon={Package}       label="Total Products"  value={data?.products?.total ?? 0} />
+        <KpiCard loading={loading} icon={TrendingDown}  label="Low Stock Items" value={data?.inventory?.lowStockItems ?? 0}
+          variant={data?.inventory?.lowStockItems > 0 ? 'warning' : 'default'}
+          sub={data?.inventory?.lowStockItems > 0 ? 'Need restocking' : 'All levels healthy'} />
+        <KpiCard loading={loading} icon={ShoppingCart}  label="Pending POs"
+          value={data?.purchaseOrders?.pendingCount ?? 0}
+          sub={data?.purchaseOrders?.pendingValue ? formatINR(data.purchaseOrders.pendingValue) : undefined} />
+        <KpiCard loading={loading} icon={AlertTriangle} label="Open Alerts"
+          value={alerts.openTotal ?? 0}
+          variant={alerts.openTotal > 0 ? 'danger' : 'default'}
+          sub={alerts.bySeverity?.critical > 0 ? `${alerts.bySeverity.critical} critical` : undefined} />
+        <KpiCard loading={loading} icon={Truck}         label="In Transit"
+          value={data?.shipments?.inTransit ?? 0} variant="navy" sub="Shipments active" />
+        <KpiCard loading={loading} icon={Warehouse}     label="Warehouses"
+          value={data?.warehouses?.total ?? 0} variant="success" />
+      </div>
+
+      {/* PO Pipeline */}
+      <div className="dash-card" style={{ padding: '18px 20px 14px' }}>
+        <PipelineStrip pipeline={pipeline} loading={loading}
+          onCreatePO={canCreatePO ? () => navigate('/purchase-orders', { state: { openCreatePO: true } }) : null} />
       </div>
 
       {/* Charts + table row */}
@@ -108,11 +178,8 @@ export default function Dashboard() {
             <table className="dash-table">
               <thead>
                 <tr>
-                  <th>Product</th>
-                  <th>Warehouse</th>
-                  <th>Type</th>
-                  <th className="text-right">Quantity</th>
-                  <th className="text-right">When</th>
+                  <th>Product</th><th>Warehouse</th><th>Type</th>
+                  <th className="text-right">Quantity</th><th className="text-right">When</th>
                 </tr>
               </thead>
               <tbody>
@@ -143,7 +210,7 @@ export default function Dashboard() {
           <div className="dash-card__head">
             <h2 className="dash-card__title">Alert Summary</h2>
           </div>
-          {alerts.total === 0 ? (
+          {(alerts.openTotal ?? 0) === 0 ? (
             <div className="dash-card__center">
               <div className="dash-all-clear">
                 <ArrowUpRight size={24} color="var(--success)" />
@@ -159,9 +226,7 @@ export default function Dashboard() {
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={48} outerRadius={72}
                     paddingAngle={3} dataKey="value">
-                    {pieData.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
+                    {pieData.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
                   </Pie>
                   <Tooltip formatter={(v, n) => [v, n]} />
                 </PieChart>

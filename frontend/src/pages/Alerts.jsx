@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Bell, CheckCircle, Eye } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Bell, CheckCircle, Eye, ShoppingCart } from 'lucide-react'
 import { getAlerts, resolveAlert, markAlertRead } from '../api/alerts'
 import { formatTimeAgo } from '../utils/formatters'
 import Badge from '../components/ui/Badge'
@@ -33,8 +34,15 @@ export default function Alerts() {
   const { toast } = useToast()
   const { user }  = useAuth()
   const ctx       = useOutletContext()
+  const navigate  = useNavigate()
 
-  const canResolve = ['admin', 'procurement_manager', 'warehouse_staff'].includes(user?.role)
+  const canWrite   = ['admin', 'procurement_manager'].includes(user?.role)
+  // low_stock alerts should only be manually resolved by procurement/admin (they have the
+  // authority to create POs). Warehouse staff can resolve other alert types (damage, count etc).
+  const canResolveAlert = (a) => {
+    if (a.type === 'low_stock') return canWrite
+    return ['admin', 'procurement_manager', 'warehouse_staff'].includes(user?.role)
+  }
 
   const load = useCallback(() => {
     setLoading(true)
@@ -54,10 +62,7 @@ export default function Alerts() {
 
   useEffect(() => { load() }, [load])
 
-  useSocket({
-    NEW_ALERT:      () => load(),
-    ALERT_RESOLVED: () => load(),
-  })
+  useSocket({ NEW_ALERT: () => load(), ALERT_RESOLVED: () => load() })
 
   const markRead = async (id) => {
     try {
@@ -79,15 +84,18 @@ export default function Alerts() {
     }
   }
 
+  const createPOForAlert = (a) => {
+    navigate('/purchase-orders', {
+      state: { openCreatePO: true, prefillProductId: a.product_id ?? undefined },
+    })
+  }
+
   return (
     <div className="page">
       <div className="page-tabs">
         {TABS.map(({ label, value }) => (
-          <button
-            key={value}
-            className={`page-tab ${tab === value ? 'page-tab--on' : ''}`}
-            onClick={() => setTab(value)}
-          >
+          <button key={value} className={`page-tab ${tab === value ? 'page-tab--on' : ''}`}
+            onClick={() => setTab(value)}>
             {label}
           </button>
         ))}
@@ -115,7 +123,7 @@ export default function Alerts() {
                 <div className="alert-card__head">
                   <div className="alert-card__badges">
                     <Badge variant={sev.badge} size="sm" dot>{a.severity}</Badge>
-                    {a.type && <Badge variant="neutral" size="sm">{a.type.replace('_', ' ')}</Badge>}
+                    {a.type && <Badge variant="neutral" size="sm">{a.type.replace(/_/g, ' ')}</Badge>}
                     {!a.is_read && <span className="alert-unread-dot" />}
                   </div>
                   <span className="alert-card__time">{formatTimeAgo(a.created_at)}</span>
@@ -129,20 +137,28 @@ export default function Alerts() {
                   {a.product_name   && <span className="alert-meta-tag">📦 {a.product_name}</span>}
                 </div>
 
-                {canResolve && !a.is_resolved && (
+                {(!a.is_resolved) && (
                   <div className="alert-card__actions">
                     {!a.is_read && (
                       <button className="page-action-btn" onClick={(e) => { e.stopPropagation(); markRead(a.id) }}>
                         <Eye size={13} /> Mark read
                       </button>
                     )}
-                    <button
-                      className="page-action-btn page-action-btn--primary"
-                      disabled={acting === a.id}
-                      onClick={(e) => { e.stopPropagation(); resolve(a.id) }}
-                    >
-                      {acting === a.id ? <Spinner size={13} color="white" /> : <><CheckCircle size={13} /> Resolve</>}
-                    </button>
+                    {canWrite && a.type === 'low_stock' && (
+                      <button className="page-action-btn alert-create-po-btn"
+                        onClick={(e) => { e.stopPropagation(); createPOForAlert(a) }}>
+                        <ShoppingCart size={13} /> Create PO
+                      </button>
+                    )}
+                    {canResolveAlert(a) && (
+                      <button
+                        className="page-action-btn page-action-btn--primary"
+                        disabled={acting === a.id}
+                        onClick={(e) => { e.stopPropagation(); resolve(a.id) }}
+                      >
+                        {acting === a.id ? <Spinner size={13} color="white" /> : <><CheckCircle size={13} /> Resolve</>}
+                      </button>
+                    )}
                   </div>
                 )}
 

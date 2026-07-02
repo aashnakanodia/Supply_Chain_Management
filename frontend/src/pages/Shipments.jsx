@@ -12,18 +12,18 @@ import { useAuth } from '../context/AuthContext'
 import './AppPage.css'
 
 const TABS = [
-  { label: 'All',          value: '' },
-  { label: 'Pending',      value: 'pending' },
-  { label: 'In Transit',   value: 'in_transit' },
-  { label: 'Delivered',    value: 'delivered' },
-  { label: 'Cancelled',    value: 'cancelled' },
+  { label: 'All',        value: '' },
+  { label: 'Pending',    value: 'pending' },
+  { label: 'In Transit', value: 'in_transit' },
+  { label: 'Delivered',  value: 'delivered' },
+  { label: 'Cancelled',  value: 'cancelled' },
 ]
 
 const STATUS_VARIANT = {
-  pending:     'warning',
-  in_transit:  'info',
-  delivered:   'success',
-  cancelled:   'neutral',
+  pending:    'warning',
+  in_transit: 'info',
+  delivered:  'success',
+  cancelled:  'neutral',
 }
 
 const NEXT_STATUS = {
@@ -32,14 +32,21 @@ const NEXT_STATUS = {
 }
 
 export default function Shipments() {
-  const [shipments, setShipments] = useState([])
-  const [total,     setTotal]     = useState(0)
-  const [loading,   setLoading]   = useState(true)
-  const [tab,       setTab]       = useState('')
-  const [page,      setPage]      = useState(1)
-  const [actingId,  setActingId]  = useState(null)
+  const [shipments,   setShipments]   = useState([])
+  const [total,       setTotal]       = useState(0)
+  const [loading,     setLoading]     = useState(true)
+  const [tab,         setTab]         = useState('')
+  const [page,        setPage]        = useState(1)
+  const [actingId,    setActingId]    = useState(null)
+
+  // Advance status modal
   const [statusModal, setStatusModal] = useState(null)
-  const [newStatus, setNewStatus] = useState('')
+  const [newStatus,   setNewStatus]   = useState('')
+
+  // Cancel with reason modal
+  const [cancelModal,  setCancelModal]  = useState(null)
+  const [cancelReason, setCancelReason] = useState('')
+
   const { toast } = useToast()
   const { user }  = useAuth()
 
@@ -69,11 +76,26 @@ export default function Shipments() {
     setActingId(statusModal.id)
     try {
       await updateShipmentStatus(statusModal.id, { status: newStatus })
-      toast.success(`Shipment status updated to ${newStatus}`)
+      toast.success(`Shipment status updated to ${newStatus.replace('_', ' ')}`)
       setStatusModal(null)
       load()
     } catch (err) {
       toast.error(err.response?.data?.error?.message ?? 'Failed to update status')
+    } finally {
+      setActingId(null)
+    }
+  }
+
+  const submitCancel = async () => {
+    if (!cancelReason.trim()) { toast.error('Reason is required'); return }
+    setActingId(cancelModal.id)
+    try {
+      await updateShipmentStatus(cancelModal.id, { status: 'cancelled', notes: cancelReason })
+      toast.success(`Shipment ${cancelModal.shipment_number} cancelled`)
+      setCancelModal(null); setCancelReason('')
+      load()
+    } catch (err) {
+      toast.error(err.response?.data?.error?.message ?? 'Failed to cancel')
     } finally {
       setActingId(null)
     }
@@ -85,11 +107,8 @@ export default function Shipments() {
     <div className="page">
       <div className="page-tabs">
         {TABS.map(({ label, value }) => (
-          <button
-            key={value}
-            className={`page-tab ${tab === value ? 'page-tab--on' : ''}`}
-            onClick={() => { setTab(value); setPage(1) }}
-          >
+          <button key={value} className={`page-tab ${tab === value ? 'page-tab--on' : ''}`}
+            onClick={() => { setTab(value); setPage(1) }}>
             {label}
           </button>
         ))}
@@ -104,12 +123,8 @@ export default function Shipments() {
           <table className="page-table">
             <thead>
               <tr>
-                <th>Shipment #</th>
-                <th>PO Reference</th>
-                <th>Warehouse</th>
-                <th>Carrier</th>
-                <th>Status</th>
-                <th>Expected</th>
+                <th>Shipment #</th><th>PO Reference</th><th>Warehouse</th>
+                <th>Carrier</th><th>Status</th><th>Expected</th>
                 {canUpdate && <th>Actions</th>}
               </tr>
             </thead>
@@ -128,11 +143,19 @@ export default function Shipments() {
                   <td className="page-td-muted">{formatDate(s.expected_arrival)}</td>
                   {canUpdate && (
                     <td>
-                      {NEXT_STATUS[s.status] && (
-                        <button className="page-action-btn" onClick={() => openStatus(s)}>
-                          Update status
-                        </button>
-                      )}
+                      <div className="page-actions">
+                        {NEXT_STATUS[s.status] && (
+                          <button className="page-action-btn" onClick={() => openStatus(s)}>
+                            Update status
+                          </button>
+                        )}
+                        {(s.status === 'pending' || s.status === 'in_transit') && (
+                          <button className="page-action-btn page-action-btn--danger"
+                            onClick={() => { setCancelModal(s); setCancelReason('') }}>
+                            Cancel
+                          </button>
+                        )}
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -150,40 +173,54 @@ export default function Shipments() {
         </div>
       )}
 
-      <Modal
-        open={!!statusModal}
-        onClose={() => setStatusModal(null)}
-        title="Update Shipment Status"
-        size="sm"
-        footer={
-          <>
-            <button className="page-btn-ghost" onClick={() => setStatusModal(null)}>Cancel</button>
-            <button className="page-btn-primary" onClick={submitStatus} disabled={!!actingId || !newStatus}>
-              {actingId ? <Spinner size={16} color="white" /> : 'Update status'}
-            </button>
-          </>
-        }
-      >
+      {/* Advance status modal */}
+      <Modal open={!!statusModal} onClose={() => setStatusModal(null)}
+        title="Update Shipment Status" size="sm"
+        footer={<>
+          <button className="page-btn-ghost" onClick={() => setStatusModal(null)}>Cancel</button>
+          <button className="page-btn-primary" onClick={submitStatus} disabled={!!actingId || !newStatus}>
+            {actingId ? <Spinner size={16} color="white" /> : 'Update status'}
+          </button>
+        </>}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <p style={{ fontSize: 13.5, color: 'var(--text-2)' }}>
-            Shipment <strong>{statusModal?.shipment_number}</strong> · Current: <Badge variant={STATUS_VARIANT[statusModal?.status]}>{statusModal?.status}</Badge>
+            Shipment <strong>{statusModal?.shipment_number}</strong> · Current:{' '}
+            <Badge variant={STATUS_VARIANT[statusModal?.status]}>{statusModal?.status?.replace('_',' ')}</Badge>
           </p>
           <div>
             <label className="adj-label">New status</label>
-            <select
-              className="page-select"
-              style={{ width: '100%', marginTop: 6 }}
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-            >
+            <select className="page-select" style={{ width: '100%', marginTop: 6 }}
+              value={newStatus} onChange={(e) => setNewStatus(e.target.value)}>
               <option value="">Select status…</option>
-              {Object.entries(NEXT_STATUS).map(([from, to]) =>
-                statusModal?.status === from
-                  ? <option key={to} value={to}>{to.replace('_', ' ')}</option>
-                  : null
+              {statusModal && NEXT_STATUS[statusModal.status] && (
+                <option value={NEXT_STATUS[statusModal.status]}>
+                  {NEXT_STATUS[statusModal.status].replace('_', ' ')}
+                </option>
               )}
-              <option value="cancelled">Cancelled</option>
             </select>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Cancel with reason modal */}
+      <Modal open={!!cancelModal} onClose={() => setCancelModal(null)}
+        title={`Cancel Shipment — ${cancelModal?.shipment_number ?? ''}`} size="sm"
+        footer={<>
+          <button className="page-btn-ghost" onClick={() => setCancelModal(null)}>Keep</button>
+          <button className="page-btn-primary" style={{ background: 'var(--danger)' }}
+            onClick={submitCancel} disabled={!!actingId || !cancelReason.trim()}>
+            {actingId ? <Spinner size={16} color="white" /> : 'Cancel Shipment'}
+          </button>
+        </>}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
+            This will cancel shipment <strong>{cancelModal?.shipment_number}</strong>. This cannot be undone.
+          </p>
+          <div>
+            <label className="adj-label">Reason for cancellation *</label>
+            <textarea className="adj-reason" style={{ marginTop: 6 }} rows={3}
+              placeholder="e.g. Carrier unavailable, damaged goods, supplier cancelled…"
+              value={cancelReason} onChange={(e) => setCancelReason(e.target.value)} />
           </div>
         </div>
       </Modal>

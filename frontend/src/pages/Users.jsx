@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Users as UsersIcon } from 'lucide-react'
 import { getUsers, changeUserRole, updateUser } from '../api/users'
+import { getSuppliers } from '../api/suppliers'
+import { getWarehouses } from '../api/warehouses'
 import { roleLabel, formatDate } from '../utils/formatters'
 import Badge from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
@@ -26,9 +28,18 @@ export default function Users() {
   const [loading, setLoading] = useState(true)
   const [page,    setPage]    = useState(1)
   const [acting,  setActing]  = useState(null)
-  const [roleModal, setRoleModal] = useState(null)
-  const [newRole,   setNewRole]   = useState('')
-  const { toast } = useToast()
+
+  // Role-change modal state
+  const [roleModal,      setRoleModal]      = useState(null)
+  const [newRole,        setNewRole]        = useState('')
+  const [newWarehouseId, setNewWarehouseId] = useState('')
+  const [newSupplierId,  setNewSupplierId]  = useState('')
+
+  // Reference data for dropdowns
+  const [warehouses, setWarehouses] = useState([])
+  const [suppliers,  setSuppliers]  = useState([])
+
+  const { toast }    = useToast()
   const { user: me } = useAuth()
 
   const load = () => {
@@ -41,13 +52,37 @@ export default function Users() {
 
   useEffect(() => { load() }, [page]) // eslint-disable-line
 
-  const openRoleModal = (u) => { setRoleModal(u); setNewRole(u.role) }
+  useEffect(() => {
+    getWarehouses().then(({ data }) => setWarehouses(data.data?.warehouses ?? [])).catch(() => {})
+    getSuppliers().then(({ data }) => setSuppliers(data.data?.suppliers ?? [])).catch(() => {})
+  }, [])
+
+  const openRoleModal = (u) => {
+    setRoleModal(u)
+    setNewRole(u.role)
+    setNewWarehouseId(u.warehouse_id ?? '')
+    setNewSupplierId(u.supplier_id ?? '')
+  }
+
+  const roleNeedsWarehouse = newRole === 'warehouse_staff'
+  const roleNeedsSupplier  = newRole === 'supplier'
+
+  const canSubmitRole = (() => {
+    if (!newRole || newRole === roleModal?.role) return false
+    if (roleNeedsWarehouse && !newWarehouseId) return false
+    if (roleNeedsSupplier  && !newSupplierId)  return false
+    return true
+  })()
 
   const submitRole = async () => {
-    if (!newRole || !roleModal) return
+    if (!canSubmitRole || !roleModal) return
     setActing(roleModal.id)
     try {
-      await changeUserRole(roleModal.id, newRole)
+      await changeUserRole(roleModal.id, {
+        role:        newRole,
+        warehouseId: roleNeedsWarehouse ? newWarehouseId : undefined,
+        supplierId:  roleNeedsSupplier  ? newSupplierId  : undefined,
+      })
       toast.success(`Role updated for ${roleModal.first_name}`)
       setRoleModal(null)
       load()
@@ -84,12 +119,8 @@ export default function Users() {
           <table className="page-table">
             <thead>
               <tr>
-                <th>User</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Joined</th>
-                <th>Actions</th>
+                <th>User</th><th>Email</th><th>Role</th>
+                <th>Linked to</th><th>Status</th><th>Joined</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -114,6 +145,13 @@ export default function Users() {
                       {roleLabel(u.role)}
                     </Badge>
                   </td>
+                  <td className="page-td-muted" style={{ fontSize: 12 }}>
+                    {u.role === 'warehouse_staff' && u.warehouse_id
+                      ? <span title={u.warehouse_id}>📦 {warehouses.find((w) => w.id === u.warehouse_id)?.name ?? 'Warehouse'}</span>
+                      : u.role === 'supplier' && u.supplier_id
+                      ? <span title={u.supplier_id}>🏭 {suppliers.find((s) => s.id === u.supplier_id)?.name ?? 'Supplier'}</span>
+                      : <span style={{ color: 'var(--text-3)' }}>—</span>}
+                  </td>
                   <td>
                     <Badge variant={u.is_active ? 'success' : 'neutral'} dot>
                       {u.is_active ? 'Active' : 'Inactive'}
@@ -121,20 +159,20 @@ export default function Users() {
                   </td>
                   <td className="page-td-muted">{formatDate(u.created_at)}</td>
                   <td>
-                    <div className="page-actions">
-                      {u.id !== me?.id && (
-                        <>
-                          <button className="page-action-btn" onClick={() => openRoleModal(u)}>Change role</button>
-                          <button
-                            className={`page-action-btn ${u.is_active ? 'page-action-btn--danger' : 'page-action-btn--success'}`}
-                            disabled={acting === u.id}
-                            onClick={() => toggleActive(u)}
-                          >
-                            {acting === u.id ? <Spinner size={13} /> : u.is_active ? 'Deactivate' : 'Activate'}
-                          </button>
-                        </>
-                      )}
-                    </div>
+                    {u.id !== me?.id && (
+                      <div className="page-actions">
+                        <button className="page-action-btn" onClick={() => openRoleModal(u)}>
+                          Change role
+                        </button>
+                        <button
+                          className={`page-action-btn ${u.is_active ? 'page-action-btn--danger' : 'page-action-btn--success'}`}
+                          disabled={acting === u.id}
+                          onClick={() => toggleActive(u)}
+                        >
+                          {acting === u.id ? <Spinner size={13} /> : u.is_active ? 'Deactivate' : 'Activate'}
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -154,25 +192,57 @@ export default function Users() {
       <Modal
         open={!!roleModal}
         onClose={() => setRoleModal(null)}
-        title={`Change Role — ${roleModal?.first_name ?? ''}`}
+        title={`Change Role — ${roleModal?.first_name ?? ''} ${roleModal?.last_name ?? ''}`}
         size="sm"
         footer={
           <>
             <button className="page-btn-ghost" onClick={() => setRoleModal(null)}>Cancel</button>
-            <button className="page-btn-primary" onClick={submitRole} disabled={!!acting || !newRole || newRole === roleModal?.role}>
+            <button className="page-btn-primary" onClick={submitRole} disabled={!!acting || !canSubmitRole}>
               {acting ? <Spinner size={16} color="white" /> : 'Save role'}
             </button>
           </>
         }
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <p style={{ fontSize: 13.5, color: 'var(--text-2)' }}>
             Current role: <Badge variant={ROLE_VARIANTS[roleModal?.role]}>{roleLabel(roleModal?.role)}</Badge>
           </p>
-          <label className="adj-label">New role</label>
-          <select className="page-select" style={{ width: '100%' }} value={newRole} onChange={(e) => setNewRole(e.target.value)}>
-            {ROLES.map((r) => <option key={r} value={r}>{roleLabel(r)}</option>)}
-          </select>
+
+          <div>
+            <label className="adj-label">New role</label>
+            <select className="page-select" style={{ width: '100%', marginTop: 6 }}
+              value={newRole} onChange={(e) => { setNewRole(e.target.value); setNewWarehouseId(''); setNewSupplierId('') }}>
+              {ROLES.map((r) => <option key={r} value={r}>{roleLabel(r)}</option>)}
+            </select>
+          </div>
+
+          {roleNeedsWarehouse && (
+            <div>
+              <label className="adj-label">Assign to warehouse *</label>
+              <select className="page-select" style={{ width: '100%', marginTop: 6 }}
+                value={newWarehouseId} onChange={(e) => setNewWarehouseId(e.target.value)}>
+                <option value="">Select warehouse…</option>
+                {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+              </select>
+              <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 4 }}>
+                Warehouse staff can only see inventory and shipments for their assigned warehouse.
+              </p>
+            </div>
+          )}
+
+          {roleNeedsSupplier && (
+            <div>
+              <label className="adj-label">Link to supplier company *</label>
+              <select className="page-select" style={{ width: '100%', marginTop: 6 }}
+                value={newSupplierId} onChange={(e) => setNewSupplierId(e.target.value)}>
+                <option value="">Select supplier…</option>
+                {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+              <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 4 }}>
+                Supplier users can only see their own purchase orders and shipments.
+              </p>
+            </div>
+          )}
         </div>
       </Modal>
     </div>
