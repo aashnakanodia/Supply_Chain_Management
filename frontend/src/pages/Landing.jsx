@@ -274,24 +274,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Stats ── */}
-      <section className="lp-stats">
-        <div className="lp-stats-inner">
-          {[
-            { label: 'SKUs supported',        val: 500,  suffix: '+' },
-            { label: 'Real-time event types',  val: 6,    suffix: '' },
-            { label: 'Access roles',           val: 5,    suffix: '' },
-            { label: 'API endpoints',          val: 50,   suffix: '+' },
-          ].map(({ label, val, suffix }) => (
-            <div key={label} className="lp-stat">
-              <div className="lp-stat-val">
-                <Counter to={val} suffix={suffix} />
-              </div>
-              <div className="lp-stat-lbl">{label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* ── Features ── */}
       <section className="lp-features" id="features">
