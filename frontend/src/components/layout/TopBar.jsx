@@ -13,7 +13,7 @@ const TITLES = {
 
 export default function TopBar({ alertCount }) {
   const { pathname } = useLocation()
-  const title = TITLES[pathname] ?? 'TechVolt SCM'
+  const title = TITLES[pathname] ?? 'Synapse'
 
   return (
     <header className="topbar">

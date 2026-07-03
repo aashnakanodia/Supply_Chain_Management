@@ -153,7 +153,7 @@ export default function Auth() {
         <div className="auth-left-content">
           <Link to="/" className="auth-nav-logo">
             <div className="auth-nav-logo-icon"><Zap size={16} /></div>
-            TechVolt <strong>SCM</strong>
+            <strong>Synapse</strong>
           </Link>
 
           <div className="auth-left-hero">
@@ -258,8 +258,8 @@ export default function Auth() {
                 <h1 className="auth-h1">{mode === 'signin' ? 'Welcome back' : 'Create your account'}</h1>
                 <p className="auth-h1-sub">
                   {mode === 'signin'
-                    ? 'Sign in to your TechVolt SCM account'
-                    : 'Join TechVolt SCM and take control of your supply chain'}
+                    ? 'Sign in to your Synapse account'
+                    : 'Join Synapse and take control of your supply chain'}
                 </p>
               </div>
 

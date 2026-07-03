@@ -67,7 +67,7 @@ export default function ResetPassword() {
         <div className="auth-left-content">
           <Link to="/" className="auth-nav-logo">
             <div className="auth-nav-logo-icon"><Zap size={16} /></div>
-            TechVolt <strong>SCM</strong>
+            <strong>Synapse</strong>
           </Link>
           <div className="auth-left-hero">
             <h2 className="auth-left-h2">

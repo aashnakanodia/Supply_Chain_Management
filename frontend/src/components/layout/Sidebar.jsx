@@ -40,7 +40,7 @@ export default function Sidebar({ collapsed, onToggle, alertCount }) {
       {/* Logo */}
       <div className="sidebar__logo">
         <div className="sidebar__logo-icon"><Zap size={16} /></div>
-        {!collapsed && <span className="sidebar__logo-text">TechVolt <strong>SCM</strong></span>}
+        {!collapsed && <span className="sidebar__logo-text"><strong>Synapse</strong></span>}
       </div>
 
       {/* Nav */}

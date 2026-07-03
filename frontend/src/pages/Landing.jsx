@@ -57,7 +57,7 @@ function DashboardMockup() {
           <div className="lp-mockup-dots">
             <span /><span /><span />
           </div>
-          <div className="lp-mockup-url">app.techvolt.in/dashboard</div>
+          <div className="lp-mockup-url">app.synapse.in/dashboard</div>
         </div>
         {/* app shell */}
         <div className="lp-mockup-app">
@@ -171,7 +171,7 @@ function Navbar() {
       <div className="lp-nav-inner">
         <div className="lp-nav-logo">
           <div className="lp-nav-logo-icon"><Zap size={15} /></div>
-          <span>TechVolt <strong>SCM</strong></span>
+          <span><strong>Synapse</strong></span>
         </div>
         <div className="lp-nav-links">
           <a href="#features">Features</a>
@@ -283,7 +283,7 @@ export default function Landing() {
               <p className="lp-section-eyebrow">Features</p>
               <h2 className="lp-section-h2">Everything your supply chain needs</h2>
               <p className="lp-section-desc">
-                From warehouse to delivery, TechVolt SCM connects every node of your operations.
+                From warehouse to delivery, Synapse connects every node of your operations.
               </p>
             </div>
           </Reveal>
@@ -352,10 +352,10 @@ export default function Landing() {
         <div className="lp-footer-inner">
           <div className="lp-footer-logo">
             <div className="lp-footer-logo-icon"><Zap size={13} /></div>
-            <span>TechVolt SCM</span>
+            <span>Synapse</span>
           </div>
           <p className="lp-footer-copy">
-            © 2026 TechVolt Electronics Pvt. Ltd. · Made with ♥ in India
+            © 2026 Synapse · Made with ♥ in India
           </p>
           <div className="lp-footer-links">
             <a href="#features">Features</a>
