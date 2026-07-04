@@ -1,8 +1,9 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, ShoppingCart, Truck, Bell,
-  Users, LogOut, Zap, ChevronLeft, ChevronRight,
+  Users, LogOut, ChevronLeft, ChevronRight,
 } from 'lucide-react'
+import HexLogo from '../ui/HexLogo'
 import { useAuth } from '../../context/AuthContext'
 import { roleLabel } from '../../utils/formatters'
 import { disconnectSocket } from '../../hooks/useSocket'
@@ -39,7 +40,7 @@ export default function Sidebar({ collapsed, onToggle, alertCount }) {
     <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
       {/* Logo */}
       <div className="sidebar__logo">
-        <div className="sidebar__logo-icon"><Zap size={16} /></div>
+        <div className="sidebar__logo-icon"><HexLogo size={38} /></div>
         {!collapsed && <span className="sidebar__logo-text"><strong>Synapse</strong></span>}
       </div>
 

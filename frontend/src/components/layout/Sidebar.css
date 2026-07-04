@@ -28,12 +28,7 @@
 }
 
 .sidebar__logo-icon {
-  width: 32px; height: 32px;
-  background: rgba(14,159,153,0.2);
-  border: 1px solid rgba(14,159,153,0.35);
-  border-radius: var(--r-sm);
   display: flex; align-items: center; justify-content: center;
-  color: #2dd4cc;
   flex-shrink: 0;
 }
 

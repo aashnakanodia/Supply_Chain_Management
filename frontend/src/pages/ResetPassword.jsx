@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
-import { Zap, Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react'
+import HexLogo from '../components/ui/HexLogo'
 import { resetPassword } from '../api/auth'
 import Spinner from '../components/ui/Spinner'
 import './Auth.css'
@@ -66,7 +67,7 @@ export default function ResetPassword() {
         <div className="auth-left-bg" aria-hidden />
         <div className="auth-left-content">
           <Link to="/" className="auth-nav-logo">
-            <div className="auth-nav-logo-icon"><Zap size={16} /></div>
+            <div className="auth-nav-logo-icon"><HexLogo size={38} /></div>
             <strong>Synapse</strong>
           </Link>
           <div className="auth-left-hero">

@@ -49,12 +49,7 @@
 .auth-nav-logo strong { color: white; font-weight: 800; }
 
 .auth-nav-logo-icon {
-  width: 30px; height: 30px;
-  background: rgba(14,159,153,0.2);
-  border: 1px solid rgba(14,159,153,0.35);
-  border-radius: 7px;
   display: flex; align-items: center; justify-content: center;
-  color: #2dd4cc;
 }
 
 .auth-left-hero { margin-bottom: 40px; }
