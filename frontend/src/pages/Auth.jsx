@@ -159,11 +159,10 @@ export default function Auth() {
 
           <div className="auth-left-hero">
             <h2 className="auth-left-h2">
-              Manage your entire<br />supply chain from<br /><em>one dashboard.</em>
+              Manage your entire<br />supply chain from<br /><em>one platform.</em>
             </h2>
             <p className="auth-left-sub">
-              Real-time inventory, PO workflows, shipment tracking,
-              and automated alerts — built for Indian electronics distributors.
+              Complete visibility across your inventory, suppliers, warehouses, and procurement operations.
             </p>
           </div>
 
