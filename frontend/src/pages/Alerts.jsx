@@ -64,6 +64,11 @@ export default function Alerts() {
 
   useSocket({ NEW_ALERT: () => load(), ALERT_RESOLVED: () => load() })
 
+  useEffect(() => {
+    window.addEventListener('synapse:data-changed', load)
+    return () => window.removeEventListener('synapse:data-changed', load)
+  }, [load])
+
   const markRead = async (id) => {
     try {
       await markAlertRead(id)

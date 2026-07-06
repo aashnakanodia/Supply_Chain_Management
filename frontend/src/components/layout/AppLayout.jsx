@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
+import ChatWidget from '../chat/ChatWidget'
 import useSocket from '../../hooks/useSocket'
 import { useToast } from '../../hooks/useToast'
 import { getAlerts } from '../../api/alerts'
@@ -61,6 +62,7 @@ export default function AppLayout() {
           <Outlet context={{ alertCount, setAlertCount }} />
         </main>
       </div>
+      <ChatWidget />
     </div>
   )
 }

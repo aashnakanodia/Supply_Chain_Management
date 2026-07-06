@@ -98,6 +98,11 @@ export default function PurchaseOrders() {
 
   useSocket({ PO_APPROVED: () => load(), PO_STATUS_CHANGED: () => load() })
 
+  useEffect(() => {
+    window.addEventListener('synapse:data-changed', load)
+    return () => window.removeEventListener('synapse:data-changed', load)
+  }, [load])
+
   // ── Create PO ──────────────────────────────────────────────────────────────
   const openCreatePO = (prefillProductId) => {
     const items = prefillProductId

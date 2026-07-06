@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -104,15 +104,20 @@ export default function Dashboard() {
   const { user }  = useAuth()
   const canCreatePO = ['admin', 'procurement_manager'].includes(user?.role)
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true)
     getDashboard()
       .then(({ data: r }) => setData(r.data))
       .catch(() => {})
       .finally(() => setLoading(false))
-  }
+  }, [])
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    window.addEventListener('synapse:data-changed', load)
+    return () => window.removeEventListener('synapse:data-changed', load)
+  }, [load])
 
   useSocket({
     INVENTORY_CHANGED:       () => load(),

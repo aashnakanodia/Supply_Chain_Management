@@ -66,6 +66,11 @@ export default function Shipments() {
   useEffect(() => { load() }, [load])
   useSocket({ SHIPMENT_STATUS_CHANGED: () => load() })
 
+  useEffect(() => {
+    window.addEventListener('synapse:data-changed', load)
+    return () => window.removeEventListener('synapse:data-changed', load)
+  }, [load])
+
   const openStatus = (shipment) => {
     setStatusModal(shipment)
     setNewStatus(NEXT_STATUS[shipment.status] ?? '')

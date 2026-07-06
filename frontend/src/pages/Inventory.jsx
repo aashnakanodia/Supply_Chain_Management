@@ -69,6 +69,11 @@ export default function Inventory() {
 
   useSocket({ INVENTORY_CHANGED: () => load() })
 
+  useEffect(() => {
+    window.addEventListener('synapse:data-changed', load)
+    return () => window.removeEventListener('synapse:data-changed', load)
+  }, [load])
+
   const openAdj = (item) => { setAdjItem(item); setAdjDelta(0); setAdjReason('') }
   const closeAdj = () => { setAdjItem(null); setAdjDelta(0); setAdjReason('') }
 
