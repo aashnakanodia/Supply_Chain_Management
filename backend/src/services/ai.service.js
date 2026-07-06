@@ -132,6 +132,42 @@ const TOOLS = [
   },
   // CREATE
   {
+    name: 'create_product',
+    description: 'Create a new product / SKU in the catalogue. Always confirm with the user before calling this.',
+    parameters: {
+      type: 'object',
+      properties: {
+        sku:           { type: 'string', description: 'Unique SKU code, e.g. PROD-001' },
+        name:          { type: 'string', description: 'Product display name' },
+        description:   { type: 'string', description: 'Optional product description' },
+        category:      { type: 'string', description: 'Product category, e.g. Electronics, Packaging' },
+        unit:          { type: 'string', description: 'Unit of measure, e.g. piece, kg, litre (default: piece)' },
+        unitPrice:     { type: 'number', description: 'Unit price in INR' },
+        reorderLevel:  { type: 'number', description: 'Stock level that triggers a low-stock alert (default 0)' },
+        leadTimeDays:  { type: 'number', description: 'Supplier lead time in days (default 0)' },
+      },
+      required: ['sku', 'name'],
+    },
+    requiredPermission: 'products:write',
+    allowedRoles: ['admin', 'procurement_manager'],
+  },
+  {
+    name: 'create_inventory_item',
+    description: 'Add a product to a warehouse\'s inventory with an opening stock quantity. Call list_products and list_warehouses first to resolve names to IDs. Always confirm with the user before calling this.',
+    parameters: {
+      type: 'object',
+      properties: {
+        warehouseId:  { type: 'string', description: 'Warehouse UUID' },
+        productId:    { type: 'string', description: 'Product UUID' },
+        quantity:     { type: 'number', description: 'Opening stock quantity' },
+        reorderPoint: { type: 'number', description: 'Quantity at which a low-stock alert fires (default 0)' },
+      },
+      required: ['warehouseId', 'productId', 'quantity'],
+    },
+    requiredPermission: 'inventory:write',
+    allowedRoles: ['admin', 'procurement_manager'],
+  },
+  {
     name: 'create_purchase_order',
     description: 'Create a new draft purchase order. Always call list_suppliers, list_products, and list_warehouses first to resolve names to IDs. Confirm with the user before calling this.',
     parameters: {
@@ -312,6 +348,26 @@ async function executeTool(name, args, scope) {
     case 'list_warehouses':
       return warehousesService.list({ limit: 50 }, scope);
 
+    case 'create_product':
+      return productsService.create({
+        sku:           args.sku,
+        name:          args.name,
+        description:   args.description   || null,
+        category:      args.category      || null,
+        unit:          args.unit          || 'piece',
+        unitPrice:     args.unitPrice     ?? 0,
+        reorderLevel:  args.reorderLevel  ?? 0,
+        leadTimeDays:  args.leadTimeDays  ?? 0,
+      }, scope);
+
+    case 'create_inventory_item':
+      return inventoryService.create({
+        warehouseId:  args.warehouseId,
+        productId:    args.productId,
+        quantity:     args.quantity,
+        reorderPoint: args.reorderPoint ?? 0,
+      }, scope);
+
     case 'create_purchase_order':
       return purchaseOrderService.create({
         supplierId:   args.supplierId,
@@ -378,6 +434,8 @@ Rules:
 - After a tool returns data, summarise it clearly. Use ₹ for Indian Rupee amounts. Format lists with bullet points.
 - If the user asks for something you cannot do due to their role, explain what access is needed.
 - When creating a purchase order, always call list_suppliers, list_products, and list_warehouses first to resolve names to their IDs — never guess at IDs.
+- When creating an inventory item, always call list_products and list_warehouses first to resolve names to IDs.
+- When creating a product, ask the user for SKU, name, unit price, and any other details they want to set before proceeding.
 - When the user references a PO by its number (e.g. PO-MR94ICQ3), call list_purchase_orders first to find the matching record and get its UUID, then use that UUID for any operations like approve, update, or cancel.
 - Keep responses concise and actionable.
 - Never mention tool names or internal implementation details.`;

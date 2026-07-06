@@ -9,6 +9,7 @@ router.get('/',        requirePermission('products:read'),  ctrl.list);
 router.get('/:id',     requirePermission('products:read'),  ctrl.getById);
 router.post('/',       requirePermission('products:write'), ctrl.create);
 router.patch('/:id',   requirePermission('products:write'), ctrl.update);
-router.delete('/:id',  requirePermission('products:write'), ctrl.remove);
+router.delete('/:id',          requirePermission('products:write'), ctrl.remove);
+router.patch('/:id/reactivate', requirePermission('products:write'), ctrl.reactivate);
 
 module.exports = router;

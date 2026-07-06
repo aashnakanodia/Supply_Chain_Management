@@ -89,4 +89,14 @@ async function remove(id, scope) {
   return { id };
 }
 
-module.exports = { list, getById, create, update, remove };
+async function reactivate(id, scope) {
+  if (scope.role !== 'admin') throw new AppError('Access denied', 403, 'FORBIDDEN');
+  const { rows } = await db.query(
+    `UPDATE products SET is_active = TRUE, updated_at = NOW() WHERE id = $1 RETURNING id, name`,
+    [id],
+  );
+  if (!rows[0]) throw new AppError('Product not found', 404, 'NOT_FOUND');
+  return rows[0];
+}
+
+module.exports = { list, getById, create, update, remove, reactivate };

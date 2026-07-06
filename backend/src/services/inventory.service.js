@@ -177,10 +177,9 @@ async function adjust(id, { quantity, reason }, scope) {
 }
 
 async function create({ warehouseId, productId, quantity, reorderPoint = 0 }, scope) {
-  if (scope.role !== 'admin' && scope.role !== 'warehouse_staff') {
+  if (scope.role !== 'admin' && scope.role !== 'procurement_manager') {
     throw new AppError('Access denied', 403, 'FORBIDDEN');
   }
-  if (scope.role === 'warehouse_staff') warehouseId = scope.warehouseId;
 
   const { rowCount: whOk } = await db.query(
     `SELECT 1 FROM warehouses WHERE id = $1 AND is_active = TRUE`, [warehouseId],

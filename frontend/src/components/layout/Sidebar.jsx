@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
-  LayoutDashboard, Package, ShoppingCart, Truck, Bell,
+  LayoutDashboard, Package, BoxesIcon, ShoppingCart, Truck, Bell,
   Users, LogOut, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import HexLogo from '../ui/HexLogo'
@@ -12,6 +12,7 @@ import './Sidebar.css'
 const NAV = [
   { to: '/dashboard',       icon: LayoutDashboard, label: 'Dashboard',       roles: ['admin','procurement_manager','warehouse_staff','viewer'] },
   { to: '/inventory',       icon: Package,         label: 'Inventory',       roles: ['admin','procurement_manager','warehouse_staff','viewer'] },
+  { to: '/products',        icon: BoxesIcon,       label: 'Products',        roles: ['admin','procurement_manager','viewer'] },
   { to: '/purchase-orders', icon: ShoppingCart,    label: 'Purchase Orders', roles: ['admin','procurement_manager','warehouse_staff','supplier','viewer'] },
   { to: '/shipments',       icon: Truck,           label: 'Shipments',       roles: null },
   { to: '/alerts',          icon: Bell,            label: 'Alerts',          roles: ['admin','procurement_manager','warehouse_staff','viewer'], alert: true },

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Search, Plus, Minus, SlidersHorizontal, AlertTriangle } from 'lucide-react'
-import { getInventory, adjustInventory } from '../api/inventory'
+import { getInventory, adjustInventory, createInventory } from '../api/inventory'
 import { getWarehouses } from '../api/warehouses'
+import { getProducts } from '../api/products'
 import { formatTimeAgo } from '../utils/formatters'
 import Badge from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
@@ -49,9 +50,17 @@ export default function Inventory() {
   const [adjDelta, setAdjDelta] = useState(0)
   const [adjReason, setAdjReason] = useState('')
   const [adjLoading, setAdjLoading] = useState(false)
+
+  // add inventory modal
+  const [addOpen,     setAddOpen]     = useState(false)
+  const [addProducts, setAddProducts] = useState([])
+  const [addForm,     setAddForm]     = useState({ productId: '', warehouseId: '', quantity: '', reorderPoint: '' })
+  const [addLoading,  setAddLoading]  = useState(false)
+
   const { toast } = useToast()
   const { user }  = useAuth()
   const canAdjust = ['admin', 'procurement_manager', 'warehouse_staff'].includes(user?.role)
+  const canAdd    = ['admin', 'procurement_manager'].includes(user?.role)
 
   const load = useCallback(() => {
     setLoading(true)
@@ -73,6 +82,37 @@ export default function Inventory() {
     window.addEventListener('synapse:data-changed', load)
     return () => window.removeEventListener('synapse:data-changed', load)
   }, [load])
+
+  const openAdd = () => {
+    setAddForm({ productId: '', warehouseId: '', quantity: '', reorderPoint: '' })
+    if (addProducts.length === 0) {
+      getProducts({ limit: 100 }).then(({ data }) => setAddProducts(data.data?.products ?? [])).catch(() => {})
+    }
+    setAddOpen(true)
+  }
+
+  const submitAdd = async () => {
+    if (!addForm.productId || !addForm.warehouseId || !addForm.quantity) {
+      toast.error('Product, warehouse, and quantity are required')
+      return
+    }
+    setAddLoading(true)
+    try {
+      await createInventory({
+        productId:    addForm.productId,
+        warehouseId:  addForm.warehouseId,
+        quantity:     parseInt(addForm.quantity),
+        reorderPoint: parseInt(addForm.reorderPoint) || 0,
+      })
+      toast.success('Inventory item added')
+      setAddOpen(false)
+      load()
+    } catch (err) {
+      toast.error(err.response?.data?.error?.message ?? 'Failed to add inventory item')
+    } finally {
+      setAddLoading(false)
+    }
+  }
 
   const openAdj = (item) => { setAdjItem(item); setAdjDelta(0); setAdjReason('') }
   const closeAdj = () => { setAdjItem(null); setAdjDelta(0); setAdjReason('') }
@@ -127,6 +167,11 @@ export default function Inventory() {
             <AlertTriangle size={14} />
             Low Stock Only
           </button>
+          {canAdd && (
+            <button className="page-btn-primary" onClick={openAdd}>
+              <Plus size={14} /> Add to Inventory
+            </button>
+          )}
         </div>
       </div>
 
@@ -189,6 +234,62 @@ export default function Inventory() {
           <button className="page-page-btn" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next →</button>
         </div>
       )}
+
+      {/* Add to Inventory modal */}
+      <Modal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        title="Add to Inventory"
+        size="sm"
+        footer={<>
+          <button className="page-btn-ghost" onClick={() => setAddOpen(false)}>Cancel</button>
+          <button className="page-btn-primary" onClick={submitAdd}
+            disabled={addLoading || !addForm.productId || !addForm.warehouseId || !addForm.quantity}>
+            {addLoading ? <Spinner size={16} color="white" /> : 'Add Item'}
+          </button>
+        </>}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <label className="adj-label">Product *</label>
+            <select className="page-select" style={{ width: '100%', marginTop: 6 }}
+              value={addForm.productId}
+              onChange={(e) => setAddForm((f) => ({ ...f, productId: e.target.value }))}>
+              <option value="">Select product…</option>
+              {addProducts.map((p) => (
+                <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="adj-label">Warehouse *</label>
+            <select className="page-select" style={{ width: '100%', marginTop: 6 }}
+              value={addForm.warehouseId}
+              onChange={(e) => setAddForm((f) => ({ ...f, warehouseId: e.target.value }))}>
+              <option value="">Select warehouse…</option>
+              {warehouses.map((w) => (
+                <option key={w.id} value={w.id}>{w.name}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label className="adj-label">Opening Quantity *</label>
+              <input className="page-search-input" style={{ marginTop: 6, width: '100%' }}
+                type="number" min="0" placeholder="0"
+                value={addForm.quantity}
+                onChange={(e) => setAddForm((f) => ({ ...f, quantity: e.target.value }))} />
+            </div>
+            <div>
+              <label className="adj-label">Reorder Point</label>
+              <input className="page-search-input" style={{ marginTop: 6, width: '100%' }}
+                type="number" min="0" placeholder="0"
+                value={addForm.reorderPoint}
+                onChange={(e) => setAddForm((f) => ({ ...f, reorderPoint: e.target.value }))} />
+            </div>
+          </div>
+        </div>
+      </Modal>
 
       {/* Adjust modal */}
       <Modal

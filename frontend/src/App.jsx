@@ -9,6 +9,7 @@ import Inventory from './pages/Inventory'
 import PurchaseOrders from './pages/PurchaseOrders'
 import Shipments from './pages/Shipments'
 import Alerts from './pages/Alerts'
+import Products from './pages/Products'
 import Users from './pages/Users'
 import ResetPassword from './pages/ResetPassword'
 import Spinner from './components/ui/Spinner'
@@ -57,6 +58,7 @@ function AppRoutes() {
       <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
         <Route path="/dashboard"       element={<RoleRoute roles={['admin','procurement_manager','warehouse_staff','viewer']}><Dashboard /></RoleRoute>} />
         <Route path="/inventory"       element={<RoleRoute roles={['admin','procurement_manager','warehouse_staff','viewer']}><Inventory /></RoleRoute>} />
+        <Route path="/products"        element={<RoleRoute roles={['admin','procurement_manager','viewer']}><Products /></RoleRoute>} />
         <Route path="/purchase-orders" element={<PurchaseOrders />} />
         <Route path="/shipments"       element={<Shipments />} />
         <Route path="/alerts"          element={<RoleRoute roles={['admin','procurement_manager','warehouse_staff','viewer']}><Alerts /></RoleRoute>} />

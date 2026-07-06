@@ -38,4 +38,10 @@ const remove = asyncHandler(async (req, res) => {
   res.json({ success: true, data: result });
 });
 
-module.exports = { list, getById, create, update, remove };
+const reactivate = asyncHandler(async (req, res) => {
+  const result = await productsService.reactivate(req.params.id, buildScope(req.user));
+  await writeAudit({ userId: req.user.id, action: 'REACTIVATE_PRODUCT', tableName: 'products', recordId: req.params.id, newValues: result, ipAddress: req.ip, userAgent: req.headers['user-agent'] });
+  res.json({ success: true, data: result });
+});
+
+module.exports = { list, getById, create, update, remove, reactivate };
