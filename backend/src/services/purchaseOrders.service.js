@@ -94,6 +94,16 @@ async function create({ supplierId, warehouseId, notes, expectedDate, items }, s
   }
   if (!items || items.length === 0) throw new AppError('Order must have at least one item', 422);
 
+  // Reject deactivated products
+  const productIds = items.map((i) => i.productId);
+  const { rows: activeProds } = await db.query(
+    `SELECT id FROM products WHERE id = ANY($1::uuid[]) AND is_active = TRUE`,
+    [productIds],
+  );
+  if (activeProds.length !== productIds.length) {
+    throw new AppError('One or more products are deactivated and cannot be ordered', 422, 'VALIDATION_ERROR');
+  }
+
   const client = await db.getClient();
   try {
     await client.query('BEGIN');
