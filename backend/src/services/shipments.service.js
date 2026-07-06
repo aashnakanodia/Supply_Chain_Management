@@ -286,4 +286,29 @@ async function updateStatus(id, { status, actualArrival, notes }, scope) {
   }
 }
 
-module.exports = { list, getById, create, updateStatus };
+async function getByNumber(shipmentNumber, scope) {
+  const { rows } = await db.query(
+    `SELECT s.*, w.name AS warehouse_name,
+            po.po_number, po.supplier_id, po.status AS po_status,
+            sup.name AS supplier_name
+     FROM shipments s
+     JOIN warehouses w       ON w.id = s.warehouse_id
+     JOIN purchase_orders po ON po.id = s.purchase_order_id
+     JOIN suppliers sup      ON sup.id = po.supplier_id
+     WHERE s.shipment_number = $1`,
+    [shipmentNumber],
+  );
+  const shipment = rows[0];
+  if (!shipment) throw new AppError(`Shipment ${shipmentNumber} not found`, 404, 'NOT_FOUND');
+
+  if (scope.role === 'warehouse_staff' && shipment.warehouse_id !== scope.warehouseId) {
+    throw new AppError('Access denied', 403, 'FORBIDDEN');
+  }
+  if (scope.role === 'supplier' && shipment.supplier_id !== scope.supplierId) {
+    throw new AppError('Access denied', 403, 'FORBIDDEN');
+  }
+
+  return shipment;
+}
+
+module.exports = { list, getById, getByNumber, create, updateStatus };

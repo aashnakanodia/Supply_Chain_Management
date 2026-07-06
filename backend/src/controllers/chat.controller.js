@@ -1,4 +1,5 @@
 const chatService = require('../services/chat.service');
+const aiService   = require('../services/ai.service');
 const asyncHandler = require('../utils/asyncHandler');
 const { buildScope } = require('../utils/scope');
 
@@ -27,15 +28,51 @@ const sendMessage = asyncHandler(async (req, res) => {
   const scope = buildScope(req.user);
 
   // Save user message
-  const userMsg = await chatService.addMessage(
+  await chatService.addMessage(
     req.params.sessionId,
     { role: 'user', content },
     scope,
   );
 
-  // Placeholder: real implementation calls AI provider and saves assistant reply.
-  // The AI response would be inserted as a separate 'assistant' message.
-  res.status(201).json({ success: true, data: { userMessage: userMsg } });
+  // Load full history for context, then call Gemini
+  const history = await chatService.getMessages(req.params.sessionId, scope);
+  let aiResult;
+  try {
+    aiResult = await aiService.generateReply(history, req.user, scope);
+  } catch (aiErr) {
+    console.error('[AI] generateReply failed:', aiErr?.message || aiErr);
+
+    const msg   = String(aiErr?.message || '');
+    const is429 = aiErr?.status === 429
+      || msg.includes('429')
+      || msg.includes('RESOURCE_EXHAUSTED')
+      || msg.includes('quota');
+
+    if (is429) {
+      const secMatch  = msg.match(/\b(\d+)s\b/);
+      const delaySec  = secMatch ? parseInt(secMatch[1], 10) : null;
+      // _retryExhausted = auto-retry already ran and also failed → daily quota gone
+      const isDaily   = aiErr._retryExhausted || !delaySec || delaySec > 60;
+      aiResult = {
+        text: isDaily
+          ? "I've reached the daily API limit (20 requests/day on the free tier). The quota resets at midnight UTC — please try again then."
+          : `I'm being rate-limited for a moment. Please wait about ${delaySec} seconds and send your message again.`,
+        tokensUsed: 0,
+      };
+    } else {
+      throw aiErr;
+    }
+  }
+  const { text, tokensUsed } = aiResult;
+
+  // Persist assistant reply
+  const assistantMsg = await chatService.addMessage(
+    req.params.sessionId,
+    { role: 'assistant', content: text, tokensUsed },
+    scope,
+  );
+
+  res.status(201).json({ success: true, data: { message: assistantMsg } });
 });
 
 const deleteSession = asyncHandler(async (req, res) => {
