@@ -2,6 +2,26 @@ const db = require('../config/database');
 const AppError = require('../utils/AppError');
 const bus = require('../utils/eventBus');
 
+// Throws if adding `additionalQty` units to `warehouseId` would exceed its capacity.
+// Uses the provided client so it runs inside the caller's transaction.
+async function _checkCapacity(client, warehouseId, additionalQty) {
+  if (additionalQty <= 0) return;
+  const { rows: [wh] } = await client.query(
+    `SELECT capacity FROM warehouses WHERE id = $1`, [warehouseId],
+  );
+  if (!wh || wh.capacity == null) return; // no limit set
+  const { rows: [{ total }] } = await client.query(
+    `SELECT COALESCE(SUM(quantity), 0) AS total FROM inventory_items WHERE warehouse_id = $1`,
+    [warehouseId],
+  );
+  if (parseInt(total, 10) + additionalQty > wh.capacity) {
+    throw new AppError(
+      `Adding ${additionalQty} units would exceed this warehouse's capacity of ${wh.capacity} units (currently at ${total} units)`,
+      422, 'CAPACITY_EXCEEDED',
+    );
+  }
+}
+
 /**
  * Scope enforcement: warehouse_staff → their warehouse only.
  * Supplier role cannot browse inventory (no PII leak of stock levels).
@@ -100,6 +120,7 @@ async function adjust(id, { quantity, reason }, scope) {
 
     const newQty = item.quantity + quantity;
     if (newQty < 0) throw new AppError('Adjustment would result in negative stock', 422);
+    await _checkCapacity(client, item.warehouse_id, quantity);
 
     const { rows } = await client.query(
       `UPDATE inventory_items SET quantity = $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
@@ -205,6 +226,7 @@ async function create({ warehouseId, productId, quantity, reorderPoint = 0 }, sc
   const client = await db.getClient();
   try {
     await client.query('BEGIN');
+    await _checkCapacity(client, warehouseId, quantity);
 
     const { rows: [item] } = await client.query(
       `INSERT INTO inventory_items (warehouse_id, product_id, quantity, reorder_point)

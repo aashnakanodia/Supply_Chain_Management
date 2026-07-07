@@ -199,6 +199,24 @@ async function updateStatus(id, status, scope, notes) {
         [id],
       );
 
+      // Check warehouse capacity before crediting any stock
+      const totalIncoming = items.reduce((sum, i) => sum + i.quantity, 0);
+      const { rows: [wh] } = await client.query(
+        `SELECT capacity FROM warehouses WHERE id = $1`, [po.warehouse_id],
+      );
+      if (wh?.capacity != null) {
+        const { rows: [{ total }] } = await client.query(
+          `SELECT COALESCE(SUM(quantity), 0) AS total FROM inventory_items WHERE warehouse_id = $1`,
+          [po.warehouse_id],
+        );
+        if (parseInt(total, 10) + totalIncoming > wh.capacity) {
+          throw new AppError(
+            `Receiving this PO would exceed the warehouse capacity of ${wh.capacity} units (currently ${total}, incoming ${totalIncoming})`,
+            422, 'CAPACITY_EXCEEDED',
+          );
+        }
+      }
+
       for (const item of items) {
         // Upsert inventory item for this warehouse + product
         const { rows: [inv] } = await client.query(
