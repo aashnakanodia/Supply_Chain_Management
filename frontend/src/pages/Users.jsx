@@ -161,9 +161,11 @@ export default function Users() {
                   <td>
                     {u.id !== me?.id && (
                       <div className="page-actions">
-                        <button className="page-action-btn" onClick={() => openRoleModal(u)}>
-                          Change role
-                        </button>
+                        {me?.role === 'admin' && (
+                          <button className="page-action-btn" onClick={() => openRoleModal(u)}>
+                            Change role
+                          </button>
+                        )}
                         <button
                           className={`page-action-btn ${u.is_active ? 'page-action-btn--danger' : 'page-action-btn--success'}`}
                           disabled={acting === u.id}

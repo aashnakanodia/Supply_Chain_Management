@@ -81,7 +81,7 @@ async function setActive(id, isActive, scope) {
 }
 
 async function changeRole(id, role, { warehouseId, supplierId } = {}, scope) {
-  if (scope.role !== 'admin' && scope.role !== 'procurement_manager') {
+  if (scope.role !== 'admin') {
     throw new AppError('Access denied', 403, 'FORBIDDEN');
   }
   if (scope.userId === id) throw new AppError('Cannot change your own role', 422);

@@ -10,6 +10,8 @@ import PurchaseOrders from './pages/PurchaseOrders'
 import Shipments from './pages/Shipments'
 import Alerts from './pages/Alerts'
 import Products from './pages/Products'
+import Suppliers from './pages/Suppliers'
+import Warehouses from './pages/Warehouses'
 import Users from './pages/Users'
 import ResetPassword from './pages/ResetPassword'
 import Spinner from './components/ui/Spinner'
@@ -62,6 +64,8 @@ function AppRoutes() {
         <Route path="/purchase-orders" element={<PurchaseOrders />} />
         <Route path="/shipments"       element={<Shipments />} />
         <Route path="/alerts"          element={<RoleRoute roles={['admin','procurement_manager','warehouse_staff','viewer']}><Alerts /></RoleRoute>} />
+        <Route path="/suppliers"       element={<RoleRoute roles={['admin','procurement_manager','viewer']}><Suppliers /></RoleRoute>} />
+        <Route path="/warehouses"      element={<RoleRoute roles={['admin','procurement_manager','warehouse_staff','viewer']}><Warehouses /></RoleRoute>} />
         <Route path="/users"           element={<RoleRoute roles={['admin','procurement_manager']}><Users /></RoleRoute>} />
       </Route>
 

@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Package, BoxesIcon, ShoppingCart, Truck, Bell,
-  Users, LogOut, ChevronLeft, ChevronRight,
+  Users, LogOut, ChevronLeft, ChevronRight, Building2, Warehouse,
 } from 'lucide-react'
 import HexLogo from '../ui/HexLogo'
 import { useAuth } from '../../context/AuthContext'
@@ -16,6 +16,8 @@ const NAV = [
   { to: '/purchase-orders', icon: ShoppingCart,    label: 'Purchase Orders', roles: ['admin','procurement_manager','warehouse_staff','supplier','viewer'] },
   { to: '/shipments',       icon: Truck,           label: 'Shipments',       roles: null },
   { to: '/alerts',          icon: Bell,            label: 'Alerts',          roles: ['admin','procurement_manager','warehouse_staff','viewer'], alert: true },
+  { to: '/suppliers',       icon: Building2,       label: 'Suppliers',       roles: ['admin','procurement_manager','viewer'] },
+  { to: '/warehouses',      icon: Warehouse,       label: 'Warehouses',      roles: ['admin','procurement_manager','warehouse_staff','viewer'] },
   { to: '/users',           icon: Users,           label: 'Users',           roles: ['admin','procurement_manager'] },
 ]
 

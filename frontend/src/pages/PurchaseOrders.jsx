@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Plus, Trash2, ShoppingCart, Truck } from 'lucide-react'
-import { getPurchaseOrders, createPurchaseOrder, approvePurchaseOrder, updatePOStatus } from '../api/purchaseOrders'
+import { Plus, Trash2, ShoppingCart, Truck, Eye } from 'lucide-react'
+import { getPurchaseOrders, getPurchaseOrderById, createPurchaseOrder, approvePurchaseOrder, updatePOStatus } from '../api/purchaseOrders'
 import { createShipment } from '../api/shipments'
 import { getSuppliers } from '../api/suppliers'
 import { getWarehouses } from '../api/warehouses'
@@ -65,6 +65,10 @@ export default function PurchaseOrders() {
   const [cancelPO,     setCancelPO]     = useState(null)
   const [cancelReason, setCancelReason] = useState('')
   const [cancelLoading, setCancelLoading] = useState(false)
+
+  // Detail modal
+  const [detailPO,      setDetailPO]      = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
 
   const location   = useLocation()
   const canWrite   = ['admin', 'procurement_manager'].includes(user?.role)
@@ -197,6 +201,19 @@ export default function PurchaseOrders() {
     }
   }
 
+  const openDetail = async (po) => {
+    setDetailPO({ ...po, items: null })
+    setDetailLoading(true)
+    try {
+      const { data } = await getPurchaseOrderById(po.id)
+      setDetailPO(data.data)
+    } catch {
+      toast.error('Failed to load PO details')
+    } finally {
+      setDetailLoading(false)
+    }
+  }
+
   const totalPages = Math.ceil(total / 20)
 
   return (
@@ -240,6 +257,9 @@ export default function PurchaseOrders() {
                     <td className="page-td-muted">{formatDate(po.order_date ?? po.created_at)}</td>
                     <td>
                       <div className="page-actions">
+                        <button className="page-action-btn" onClick={() => openDetail(po)}>
+                          <Eye size={13} /> View
+                        </button>
                         {canApprove && po.status === 'pending' && (
                           <button className="page-action-btn page-action-btn--primary"
                             disabled={actingId === po.id} onClick={() => approve(po.id)}>
@@ -333,7 +353,7 @@ export default function PurchaseOrders() {
                 <input type="number" className="page-select" min={1} value={item.quantity}
                   onChange={(e) => setItem(i, 'quantity', e.target.value)} style={{ width: 80 }} />
                 <input type="number" className="page-select" min={0} step="0.01" value={item.unitPrice}
-                  onChange={(e) => setItem(i, 'unitPrice', e.target.value)} style={{ width: 110 }} />
+                  readOnly style={{ width: 110, background: 'var(--surface-2, #f5f5f5)', cursor: 'not-allowed' }} />
                 <span className="po-item-subtotal">
                   {formatINR((Number(item.quantity) || 0) * (Number(item.unitPrice) || 0))}
                 </span>
@@ -348,6 +368,86 @@ export default function PurchaseOrders() {
             </div>
           </div>
         </div>
+      </Modal>
+
+      {/* ── PO Detail Modal ── */}
+      <Modal open={!!detailPO} onClose={() => setDetailPO(null)}
+        title={`Purchase Order — ${detailPO?.po_number ?? ''}`} size="lg"
+        footer={<button className="page-btn-ghost" onClick={() => setDetailPO(null)}>Close</button>}
+      >
+        {detailLoading || !detailPO?.items ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><Spinner /></div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+              <div>
+                <p className="adj-label">Supplier</p>
+                <p style={{ marginTop: 4, fontSize: 13.5 }}>{detailPO.supplier_name}</p>
+              </div>
+              <div>
+                <p className="adj-label">Warehouse</p>
+                <p style={{ marginTop: 4, fontSize: 13.5 }}>{detailPO.warehouse_name}</p>
+              </div>
+              <div>
+                <p className="adj-label">Status</p>
+                <p style={{ marginTop: 4 }}>
+                  <Badge variant={STATUS_VARIANT[detailPO.status] ?? 'neutral'} dot>
+                    {detailPO.status.charAt(0).toUpperCase() + detailPO.status.slice(1)}
+                  </Badge>
+                </p>
+              </div>
+              <div>
+                <p className="adj-label">Order Date</p>
+                <p style={{ marginTop: 4, fontSize: 13.5 }}>{formatDate(detailPO.order_date ?? detailPO.created_at)}</p>
+              </div>
+              <div>
+                <p className="adj-label">Expected Delivery</p>
+                <p style={{ marginTop: 4, fontSize: 13.5 }}>{detailPO.expected_date ? formatDate(detailPO.expected_date) : '—'}</p>
+              </div>
+              <div>
+                <p className="adj-label">Total Amount</p>
+                <p style={{ marginTop: 4, fontSize: 13.5, fontWeight: 600 }}>{formatINR(detailPO.total_amount)}</p>
+              </div>
+            </div>
+            {detailPO.notes && (
+              <div>
+                <p className="adj-label">Notes</p>
+                <p style={{ marginTop: 4, fontSize: 13, color: 'var(--text-2)' }}>{detailPO.notes}</p>
+              </div>
+            )}
+            <div>
+              <p className="adj-label" style={{ marginBottom: 10 }}>Ordered Items</p>
+              <table className="page-table">
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Product</th>
+                    <th>Unit</th>
+                    <th className="text-right">Qty Ordered</th>
+                    <th className="text-right">Unit Price</th>
+                    <th className="text-right">Subtotal</th>
+                    {detailPO.status === 'received' && <th className="text-right">Qty Received</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {detailPO.items.map((item) => (
+                    <tr key={item.id}>
+                      <td><code className="page-sku">{item.sku}</code></td>
+                      <td><span className="page-product-name">{item.product_name}</span></td>
+                      <td className="page-td-muted">{item.unit}</td>
+                      <td className="text-right page-mono">{item.quantity}</td>
+                      <td className="text-right page-mono">{formatINR(item.unit_price)}</td>
+                      <td className="text-right page-mono">{formatINR(item.quantity * item.unit_price)}</td>
+                      {detailPO.status === 'received' && (
+                        <td className="text-right page-mono">{item.received_quantity ?? 0}</td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* ── Create Shipment Modal ── */}
