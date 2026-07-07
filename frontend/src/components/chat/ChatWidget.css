@@ -105,6 +105,21 @@
   opacity: .75;
   margin-top: 1px;
 }
+.cw-minimize {
+  width: 28px;
+  height: 28px;
+  background: rgba(255,255,255,.12);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s;
+}
+.cw-minimize:hover { background: rgba(255,255,255,.25); }
+
 .cw-close {
   width: 28px;
   height: 28px;
@@ -119,6 +134,11 @@
   transition: background .15s;
 }
 .cw-close:hover { background: rgba(255,255,255,.25); }
+
+.cw-panel--minimized {
+  max-height: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+}
 
 /* ─── Sessions view ─────────────────────────────────────────────────────────── */
 

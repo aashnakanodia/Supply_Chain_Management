@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { MessageCircle, X, Send, Plus, Trash2, ChevronLeft, Loader } from 'lucide-react'
+import { MessageCircle, X, Send, Plus, Trash2, ChevronLeft, Loader, Minus, Maximize2 } from 'lucide-react'
 import * as chatApi from '../../api/chat'
 import './ChatWidget.css'
 
@@ -59,6 +59,7 @@ function TypingIndicator() {
 
 export default function ChatWidget() {
   const [open,       setOpen]       = useState(false)
+  const [minimized,  setMinimized]  = useState(false)
   const [view,       setView]       = useState('sessions') // 'sessions' | 'chat'
   const [sessions,   setSessions]   = useState([])
   const [activeId,   setActiveId]   = useState(null)
@@ -180,11 +181,12 @@ export default function ChatWidget() {
 
       {/* Panel */}
       {open && (
-        <div className="cw-panel" role="dialog" aria-label="Synapse AI assistant">
+        <div className={`cw-panel${minimized ? ' cw-panel--minimized' : ''}`} role="dialog" aria-label="Synapse AI assistant">
           {/* Header */}
-          <div className="cw-header">
-            {view === 'chat' ? (
-              <button className="cw-back" onClick={() => { setView('sessions'); setError('') }}>
+          <div className="cw-header" onClick={minimized ? () => setMinimized(false) : undefined}
+            style={minimized ? { cursor: 'pointer' } : {}}>
+            {!minimized && (view === 'chat' ? (
+              <button className="cw-back" onClick={(e) => { e.stopPropagation(); setView('sessions'); setError('') }}>
                 <ChevronLeft size={16} />
               </button>
             ) : (
@@ -199,18 +201,22 @@ export default function ChatWidget() {
                   <circle cx="4.8" cy="8"  r="2" fill="#2dd4cc" opacity=".6" />
                 </svg>
               </div>
-            )}
+            ))}
             <div className="cw-header-text">
               <span className="cw-header-title">Synapse AI</span>
-              <span className="cw-header-sub">Your supply chain assistant</span>
+              {!minimized && <span className="cw-header-sub">Your supply chain assistant</span>}
             </div>
-            <button className="cw-close" onClick={() => setOpen(false)} aria-label="Close">
+            <button className="cw-minimize" onClick={(e) => { e.stopPropagation(); setMinimized(v => !v) }}
+              aria-label={minimized ? 'Restore' : 'Minimize'} title={minimized ? 'Restore' : 'Minimize'}>
+              {minimized ? <Maximize2 size={13} /> : <Minus size={13} />}
+            </button>
+            <button className="cw-close" onClick={(e) => { e.stopPropagation(); setOpen(false); setMinimized(false) }} aria-label="Close">
               <X size={16} />
             </button>
           </div>
 
           {/* ── SESSIONS VIEW ── */}
-          {view === 'sessions' && (
+          {!minimized && view === 'sessions' && (
             <div className="cw-sessions">
               <button className="cw-new-btn" onClick={newSession}>
                 <Plus size={14} /> New conversation
@@ -249,7 +255,7 @@ export default function ChatWidget() {
           )}
 
           {/* ── CHAT VIEW ── */}
-          {view === 'chat' && (
+          {!minimized && view === 'chat' && (
             <>
               <div className="cw-messages">
                 {loadingMsgs ? (
