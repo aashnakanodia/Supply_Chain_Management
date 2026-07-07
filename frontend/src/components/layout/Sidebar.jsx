@@ -12,10 +12,10 @@ import './Sidebar.css'
 const NAV = [
   { to: '/dashboard',       icon: LayoutDashboard, label: 'Dashboard',       roles: ['admin','procurement_manager','warehouse_staff','viewer'] },
   { to: '/inventory',       icon: Package,         label: 'Inventory',       roles: ['admin','procurement_manager','warehouse_staff','viewer'] },
-  { to: '/products',        icon: BoxesIcon,       label: 'Products',        roles: ['admin','procurement_manager','viewer'] },
   { to: '/purchase-orders', icon: ShoppingCart,    label: 'Purchase Orders', roles: ['admin','procurement_manager','warehouse_staff','supplier','viewer'] },
   { to: '/shipments',       icon: Truck,           label: 'Shipments',       roles: null },
   { to: '/alerts',          icon: Bell,            label: 'Alerts',          roles: ['admin','procurement_manager','warehouse_staff','viewer'], alert: true },
+  { to: '/products',        icon: BoxesIcon,       label: 'Products',        roles: ['admin','procurement_manager','viewer'] },
   { to: '/suppliers',       icon: Building2,       label: 'Suppliers',       roles: ['admin','procurement_manager','viewer'] },
   { to: '/warehouses',      icon: Warehouse,       label: 'Warehouses',      roles: ['admin','procurement_manager','warehouse_staff','viewer'] },
   { to: '/users',           icon: Users,           label: 'Users',           roles: ['admin','procurement_manager'] },
