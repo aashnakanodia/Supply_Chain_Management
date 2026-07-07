@@ -90,8 +90,16 @@ export default function Alerts() {
   }
 
   const createPOForAlert = (a) => {
+    const currentStock  = a.current_stock  ?? 0
+    const reorderPoint  = a.reorder_point  ?? 0
+    const neededQty     = Math.max(reorderPoint - currentStock, 1)
     navigate('/purchase-orders', {
-      state: { openCreatePO: true, prefillProductId: a.product_id ?? undefined },
+      state: {
+        openCreatePO:      true,
+        prefillProductId:  a.product_id   ?? undefined,
+        prefillWarehouseId: a.warehouse_id ?? undefined,
+        prefillQuantity:   neededQty,
+      },
     })
   }
 
@@ -140,7 +148,26 @@ export default function Alerts() {
                 <div className="alert-card__meta">
                   {a.warehouse_name && <span className="alert-meta-tag">📍 {a.warehouse_name}</span>}
                   {a.product_name   && <span className="alert-meta-tag">📦 {a.product_name}</span>}
+                  {a.type === 'low_stock' && a.current_stock != null && (
+                    <span className="alert-meta-tag">🔢 Stock: {a.current_stock} / Reorder at: {a.reorder_point}</span>
+                  )}
                 </div>
+
+                {a.type === 'low_stock' && a.preferred_supplier_name && (
+                  <div className="alert-contact-box">
+                    <p className="alert-contact-label">Preferred Supplier</p>
+                    <p className="alert-contact-name">{a.preferred_supplier_name}</p>
+                    <div className="alert-contact-row">
+                      {a.preferred_supplier_contact && <span>👤 {a.preferred_supplier_contact}</span>}
+                      {a.preferred_supplier_email   && (
+                        <a href={`mailto:${a.preferred_supplier_email}`} className="alert-contact-link">
+                          ✉️ {a.preferred_supplier_email}
+                        </a>
+                      )}
+                      {a.preferred_supplier_phone   && <span>📞 {a.preferred_supplier_phone}</span>}
+                    </div>
+                  </div>
+                )}
 
                 {(!a.is_resolved) && (
                   <div className="alert-card__actions">

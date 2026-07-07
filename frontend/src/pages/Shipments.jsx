@@ -164,9 +164,15 @@ export default function Shipments() {
                   <td className="page-td-muted">{s.warehouse_name}</td>
                   <td className="page-td-muted">{s.carrier ?? '—'}</td>
                   <td>
-                    <Badge variant={STATUS_VARIANT[s.status] ?? 'neutral'} dot>
-                      {s.status.replace('_', ' ')}
-                    </Badge>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <Badge variant={STATUS_VARIANT[s.status] ?? 'neutral'} dot>
+                        {s.status.replace('_', ' ')}
+                      </Badge>
+                      {(s.status === 'pending' || s.status === 'in_transit') &&
+                        s.expected_arrival && new Date(s.expected_arrival) < new Date() && (
+                        <Badge variant="danger">Delayed</Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="page-td-muted">{formatDate(s.expected_arrival)}</td>
                   <td>
@@ -211,6 +217,19 @@ export default function Shipments() {
           <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><Spinner /></div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+            {/* Delayed callout */}
+            {(detailShipment.status === 'pending' || detailShipment.status === 'in_transit') &&
+              detailShipment.expected_arrival && new Date(detailShipment.expected_arrival) < new Date() && (
+              <div style={{ background: '#fff5f5', border: '1px solid #fca5a5', borderRadius: 'var(--r-md)', padding: '12px 16px', fontSize: 13, color: 'var(--text-1)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: 16 }}>🚨</span>
+                <div>
+                  <strong>Shipment Delayed</strong>
+                  <p style={{ marginTop: 2, color: 'var(--text-2)' }}>Expected arrival was {formatDate(detailShipment.expected_arrival)}. Contact the supplier or carrier below to follow up.</p>
+                </div>
+              </div>
+            )}
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
               <div>
                 <p className="adj-label">Status</p>
@@ -253,6 +272,25 @@ export default function Shipments() {
                 </div>
               )}
             </div>
+            {/* Contact details */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '12px 14px' }}>
+                <p style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Supplier Contact</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{detailShipment.supplier_name ?? '—'}</p>
+                {detailShipment.supplier_contact && <p style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 3 }}>👤 {detailShipment.supplier_contact}</p>}
+                {detailShipment.supplier_email && <a href={`mailto:${detailShipment.supplier_email}`} style={{ fontSize: 12, color: 'var(--primary)', display: 'block', marginTop: 3, textDecoration: 'none' }}>✉️ {detailShipment.supplier_email}</a>}
+                {detailShipment.supplier_phone && <p style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 3 }}>📞 {detailShipment.supplier_phone}</p>}
+                {!detailShipment.supplier_contact && !detailShipment.supplier_email && !detailShipment.supplier_phone && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>No contact details on file</p>}
+              </div>
+              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '12px 14px' }}>
+                <p style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Warehouse Manager</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{detailShipment.warehouse_name}</p>
+                {detailShipment.warehouse_manager && <p style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 3 }}>👤 {detailShipment.warehouse_manager}</p>}
+                {detailShipment.warehouse_manager_email && <a href={`mailto:${detailShipment.warehouse_manager_email}`} style={{ fontSize: 12, color: 'var(--primary)', display: 'block', marginTop: 3, textDecoration: 'none' }}>✉️ {detailShipment.warehouse_manager_email}</a>}
+                {!detailShipment.warehouse_manager && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>No manager assigned</p>}
+              </div>
+            </div>
+
             {detailShipment.notes && (
               <div>
                 <p className="adj-label">Notes</p>

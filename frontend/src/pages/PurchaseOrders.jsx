@@ -94,11 +94,15 @@ export default function PurchaseOrders() {
   // Auto-open Create PO modal when navigated from Dashboard/Alerts with state
   useEffect(() => {
     if (location.state?.openCreatePO) {
-      openCreatePO(location.state.prefillProductId ?? null)
-      window.history.replaceState({}, '') // clear state so re-render doesn't re-open
+      openCreatePO(
+        location.state.prefillProductId   ?? null,
+        location.state.prefillWarehouseId ?? null,
+        location.state.prefillQuantity    ?? null,
+      )
+      window.history.replaceState({}, '')
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products]) // wait until products are loaded before opening
+  }, [products])
 
   useSocket({ PO_APPROVED: () => load(), PO_STATUS_CHANGED: () => load() })
 
@@ -108,11 +112,11 @@ export default function PurchaseOrders() {
   }, [load])
 
   // ── Create PO ──────────────────────────────────────────────────────────────
-  const openCreatePO = (prefillProductId) => {
+  const openCreatePO = (prefillProductId, prefillWarehouseId, prefillQuantity) => {
     const items = prefillProductId
-      ? [{ productId: prefillProductId, quantity: 1, unitPrice: products.find((p) => p.id === prefillProductId)?.unit_price ?? 0 }]
+      ? [{ productId: prefillProductId, quantity: prefillQuantity ?? 1, unitPrice: products.find((p) => p.id === prefillProductId)?.unit_price ?? 0 }]
       : [{ ...EMPTY_ITEM }]
-    setNewPO({ supplierId: '', warehouseId: '', expectedDate: '', notes: '', items })
+    setNewPO({ supplierId: '', warehouseId: prefillWarehouseId ?? '', expectedDate: '', notes: '', items })
     setShowCreatePO(true)
   }
 
@@ -379,6 +383,18 @@ export default function PurchaseOrders() {
           <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><Spinner /></div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+            {/* Pending approval callout */}
+            {detailPO.status === 'pending' && (
+              <div style={{ background: 'var(--warning-bg, #fffbeb)', border: '1px solid var(--warning-border, #fcd34d)', borderRadius: 'var(--r-md)', padding: '12px 16px', fontSize: 13, color: 'var(--text-1)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <span style={{ fontSize: 16 }}>⏳</span>
+                <div>
+                  <strong>Awaiting Approval</strong>
+                  <p style={{ marginTop: 2, color: 'var(--text-2)' }}>This PO needs admin approval before the supplier can be contacted or a shipment created.</p>
+                </div>
+              </div>
+            )}
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
               <div>
                 <p className="adj-label">Supplier</p>
@@ -386,7 +402,7 @@ export default function PurchaseOrders() {
               </div>
               <div>
                 <p className="adj-label">Warehouse</p>
-                <p style={{ marginTop: 4, fontSize: 13.5 }}>{detailPO.warehouse_name}</p>
+                <p style={{ marginTop: 4, fontSize: 13.5 }}>{detailPO.warehouse_name}{detailPO.warehouse_city ? `, ${detailPO.warehouse_city}` : ''}</p>
               </div>
               <div>
                 <p className="adj-label">Status</p>
@@ -409,6 +425,26 @@ export default function PurchaseOrders() {
                 <p style={{ marginTop: 4, fontSize: 13.5, fontWeight: 600 }}>{formatINR(detailPO.total_amount)}</p>
               </div>
             </div>
+
+            {/* Contact details */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '12px 14px' }}>
+                <p style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Supplier Contact</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{detailPO.supplier_name}</p>
+                {detailPO.supplier_contact && <p style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 3 }}>👤 {detailPO.supplier_contact}</p>}
+                {detailPO.supplier_email && <a href={`mailto:${detailPO.supplier_email}`} style={{ fontSize: 12, color: 'var(--primary)', display: 'block', marginTop: 3, textDecoration: 'none' }}>✉️ {detailPO.supplier_email}</a>}
+                {detailPO.supplier_phone && <p style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 3 }}>📞 {detailPO.supplier_phone}</p>}
+                {!detailPO.supplier_contact && !detailPO.supplier_email && !detailPO.supplier_phone && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>No contact details on file</p>}
+              </div>
+              <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '12px 14px' }}>
+                <p style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Warehouse Manager</p>
+                <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{detailPO.warehouse_name}</p>
+                {detailPO.warehouse_manager && <p style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 3 }}>👤 {detailPO.warehouse_manager}</p>}
+                {detailPO.warehouse_manager_email && <a href={`mailto:${detailPO.warehouse_manager_email}`} style={{ fontSize: 12, color: 'var(--primary)', display: 'block', marginTop: 3, textDecoration: 'none' }}>✉️ {detailPO.warehouse_manager_email}</a>}
+                {!detailPO.warehouse_manager && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>No manager assigned</p>}
+              </div>
+            </div>
+
             {detailPO.notes && (
               <div>
                 <p className="adj-label">Notes</p>

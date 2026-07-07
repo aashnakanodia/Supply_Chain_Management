@@ -35,10 +35,19 @@ async function list({ page = 1, limit = 20, type, severity, isResolved, warehous
     `SELECT a.id, a.type, a.severity, a.title, a.message, a.warehouse_id, a.product_id,
             a.is_read, a.is_resolved, a.created_at,
             w.name AS warehouse_name,
-            p.name AS product_name
+            p.name AS product_name,
+            ii.quantity    AS current_stock,
+            ii.reorder_point,
+            ps.name         AS preferred_supplier_name,
+            ps.contact_name AS preferred_supplier_contact,
+            ps.email        AS preferred_supplier_email,
+            ps.phone        AS preferred_supplier_phone
      FROM alerts a
-     LEFT JOIN warehouses w ON w.id = a.warehouse_id
-     LEFT JOIN products   p ON p.id = a.product_id
+     LEFT JOIN warehouses      w   ON w.id   = a.warehouse_id
+     LEFT JOIN products        p   ON p.id   = a.product_id
+     LEFT JOIN inventory_items ii  ON ii.product_id = a.product_id AND ii.warehouse_id = a.warehouse_id
+     LEFT JOIN supplier_products sp ON sp.product_id = a.product_id AND sp.is_preferred = TRUE
+     LEFT JOIN suppliers         ps ON ps.id = sp.supplier_id
      WHERE ${where.join(' AND ')}
      ORDER BY a.created_at DESC
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
