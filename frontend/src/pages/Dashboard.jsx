@@ -7,7 +7,6 @@ import {
 } from 'lucide-react'
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from 'recharts'
 import { getDashboard } from '../api/dashboard'
 import { formatINR, formatTimeAgo } from '../utils/formatters'
@@ -134,11 +133,6 @@ export default function Dashboard() {
     .map((k) => ({ name: k.charAt(0).toUpperCase() + k.slice(1), value: alerts.bySeverity[k], color: SEVERITY_COLORS[k] }))
 
   const movements = data?.recentStockMovements ?? []
-  const barData = movements.slice(0, 7).map((m) => ({
-    name: m.product_name?.split(' ').slice(0, 2).join(' ') ?? '—',
-    qty:  Math.abs(m.quantity ?? 0),
-    type: m.movement_type,
-  }))
 
   const pipeline = data?.poPipeline ?? {}
 
@@ -249,23 +243,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Bar chart */}
-        {barData.length > 0 && (
-          <div className="dash-card dash-card--wide">
-            <div className="dash-card__head">
-              <h2 className="dash-card__title">Movement Quantities (Recent)</h2>
-            </div>
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={barData} margin={{ top: 4, right: 8, bottom: 24, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-3)' }} angle={-30} textAnchor="end" />
-                <YAxis tick={{ fontSize: 10, fill: 'var(--text-3)' }} />
-                <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid var(--border)' }} />
-                <Bar dataKey="qty" fill="var(--primary)" radius={[4,4,0,0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
       </div>
     </div>
   )
