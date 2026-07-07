@@ -1,11 +1,12 @@
 const db = require('../config/database');
 const AppError = require('../utils/AppError');
 
-async function list({ page = 1, limit = 20, isActive = true } = {}, scope) {
+async function list({ page = 1, limit = 20, isActive = true, search } = {}, scope) {
   const params = [];
   const where = ['1=1'];
 
   if (isActive !== undefined) { params.push(isActive); where.push(`w.is_active = $${params.length}`); }
+  if (search) { params.push(`%${search}%`); where.push(`w.name ILIKE $${params.length}`); }
 
   // warehouse_staff sees only their own warehouse
   if (scope.role === 'warehouse_staff') {

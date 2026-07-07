@@ -5,9 +5,9 @@ const { writeAudit } = require('../utils/audit');
 const v = require('../utils/validate');
 
 const list = asyncHandler(async (req, res) => {
-  const { page, limit, isActive } = req.query;
+  const { page, limit, isActive, search } = req.query;
   const result = await warehousesService.list(
-    { page: +page || 1, limit: +limit || 20, isActive: isActive === 'false' ? false : true },
+    { page: +page || 1, limit: +limit || 20, isActive: isActive === 'false' ? false : true, search: search || undefined },
     buildScope(req.user),
   );
   res.json({ success: true, data: result });

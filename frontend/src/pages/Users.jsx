@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Users as UsersIcon } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Users as UsersIcon, Search } from 'lucide-react'
 import { getUsers, changeUserRole, updateUser } from '../api/users'
 import { getSuppliers } from '../api/suppliers'
 import { getWarehouses } from '../api/warehouses'
@@ -26,8 +26,11 @@ export default function Users() {
   const [users,   setUsers]   = useState([])
   const [total,   setTotal]   = useState(0)
   const [loading, setLoading] = useState(true)
-  const [page,    setPage]    = useState(1)
-  const [acting,  setActing]  = useState(null)
+  const [page,      setPage]      = useState(1)
+  const [acting,    setActing]    = useState(null)
+  const [search,    setSearch]    = useState('')
+  const [roleFilter, setRoleFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
   // Role-change modal state
   const [roleModal,      setRoleModal]      = useState(null)
@@ -42,15 +45,20 @@ export default function Users() {
   const { toast }    = useToast()
   const { user: me } = useAuth()
 
-  const load = () => {
+  const load = useCallback(() => {
     setLoading(true)
-    getUsers({ page, limit: 25 })
+    getUsers({
+      page, limit: 25,
+      search:   search    || undefined,
+      role:     roleFilter   || undefined,
+      isActive: statusFilter === '' ? undefined : statusFilter === 'active',
+    })
       .then(({ data }) => { setUsers(data.data?.users ?? []); setTotal(data.data?.total ?? 0) })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }
+  }, [page, search, roleFilter, statusFilter])
 
-  useEffect(() => { load() }, [page]) // eslint-disable-line
+  useEffect(() => { load() }, [load])
 
   useEffect(() => {
     getWarehouses().then(({ data }) => setWarehouses(data.data?.warehouses ?? [])).catch(() => {})
@@ -110,11 +118,36 @@ export default function Users() {
 
   return (
     <div className="page">
+      <div className="page-toolbar">
+        <div className="page-search-wrap">
+          <Search size={14} className="page-search-icon" />
+          <input
+            className="page-search-input"
+            placeholder="Search by name or email…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+          />
+        </div>
+        <div className="page-toolbar-right">
+          <select className="page-select" value={roleFilter}
+            onChange={(e) => { setRoleFilter(e.target.value); setPage(1) }}>
+            <option value="">All roles</option>
+            {ROLES.map((r) => <option key={r} value={r}>{roleLabel(r)}</option>)}
+          </select>
+          <select className="page-select" value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}>
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+      </div>
       <div className="page-table-wrap">
         {loading && users.length === 0 ? (
           <div className="page-loading"><Spinner /></div>
         ) : users.length === 0 ? (
-          <EmptyState icon={UsersIcon} title="No users found" />
+          <EmptyState icon={UsersIcon} title="No users found"
+            description={search || roleFilter || statusFilter ? 'No users match your filters.' : 'No users yet.'} />
         ) : (
           <table className="page-table">
             <thead>
@@ -147,9 +180,9 @@ export default function Users() {
                   </td>
                   <td className="page-td-muted" style={{ fontSize: 12 }}>
                     {u.role === 'warehouse_staff' && u.warehouse_id
-                      ? <span title={u.warehouse_id}>📦 {warehouses.find((w) => w.id === u.warehouse_id)?.name ?? 'Warehouse'}</span>
+                      ? <span>{warehouses.find((w) => w.id === u.warehouse_id)?.name ?? 'Warehouse'}</span>
                       : u.role === 'supplier' && u.supplier_id
-                      ? <span title={u.supplier_id}>🏭 {suppliers.find((s) => s.id === u.supplier_id)?.name ?? 'Supplier'}</span>
+                      ? <span>{suppliers.find((s) => s.id === u.supplier_id)?.name ?? 'Supplier'}</span>
                       : <span style={{ color: 'var(--text-3)' }}>—</span>}
                   </td>
                   <td>

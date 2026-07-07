@@ -5,9 +5,9 @@ const { writeAudit } = require('../utils/audit');
 const v = require('../utils/validate');
 
 const list = asyncHandler(async (req, res) => {
-  const { page, limit, role, isActive } = req.query;
+  const { page, limit, role, isActive, search } = req.query;
   const result = await usersService.list(
-    { page: +page || 1, limit: +limit || 20, role, isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined },
+    { page: +page || 1, limit: +limit || 20, role, isActive: isActive === 'true' ? true : isActive === 'false' ? false : undefined, search: search || undefined },
     buildScope(req.user),
   );
   res.json({ success: true, data: result });

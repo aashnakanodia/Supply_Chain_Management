@@ -17,7 +17,7 @@ async function getById(id, scope) {
   return rows[0];
 }
 
-async function list({ page = 1, limit = 20, role, isActive } = {}, scope) {
+async function list({ page = 1, limit = 20, role, isActive, search } = {}, scope) {
   if (scope.role !== 'admin' && scope.role !== 'procurement_manager') {
     throw new AppError('Access denied', 403, 'FORBIDDEN');
   }
@@ -26,6 +26,7 @@ async function list({ page = 1, limit = 20, role, isActive } = {}, scope) {
   const where = ['1=1'];
   if (role)     { params.push(role);     where.push(`u.role = $${params.length}`); }
   if (isActive !== undefined) { params.push(isActive); where.push(`u.is_active = $${params.length}`); }
+  if (search)   { params.push(`%${search}%`); where.push(`(u.first_name ILIKE $${params.length} OR u.last_name ILIKE $${params.length} OR u.email ILIKE $${params.length})`); }
 
   const offset = (page - 1) * limit;
   params.push(limit, offset);

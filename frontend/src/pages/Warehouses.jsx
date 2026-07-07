@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Warehouse, Pencil } from 'lucide-react'
+import { Plus, Warehouse, Pencil, Search } from 'lucide-react'
 import { getWarehouses, createWarehouse, updateWarehouse } from '../api/warehouses'
 import Modal from '../components/ui/Modal'
 import Spinner from '../components/ui/Spinner'
@@ -15,6 +15,7 @@ export default function Warehouses() {
   const [total,      setTotal]      = useState(0)
   const [loading,    setLoading]    = useState(true)
   const [page,       setPage]       = useState(1)
+  const [search,     setSearch]     = useState('')
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editing,   setEditing]   = useState(null)
@@ -27,14 +28,14 @@ export default function Warehouses() {
 
   const load = useCallback(() => {
     setLoading(true)
-    getWarehouses({ page, limit: 20 })
+    getWarehouses({ page, limit: 20, search: search || undefined })
       .then(({ data }) => {
         setWarehouses(data.data?.warehouses ?? [])
         setTotal(data.data?.total ?? 0)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  }, [page])
+  }, [page, search])
 
   useEffect(() => { load() }, [load])
 
@@ -92,7 +93,15 @@ export default function Warehouses() {
   return (
     <div className="page">
       <div className="page-toolbar">
-        <div style={{ flex: 1 }} />
+        <div className="page-search-wrap">
+          <Search size={14} className="page-search-icon" />
+          <input
+            className="page-search-input"
+            placeholder="Search warehouses…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+          />
+        </div>
         {canWrite && (
           <div className="page-toolbar-right">
             <button className="page-btn-primary" onClick={openCreate}>
