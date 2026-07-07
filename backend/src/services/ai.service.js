@@ -9,6 +9,7 @@ const dashboardService      = require('./dashboard.service');
 const suppliersService      = require('./suppliers.service');
 const warehousesService     = require('./warehouses.service');
 const productsService       = require('./products.service');
+const usersService          = require('./users.service');
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -283,6 +284,180 @@ const TOOLS = [
     requiredPermission: 'alerts:read',
     allowedRoles: ['admin', 'procurement_manager', 'warehouse_staff'],
   },
+  // PRODUCTS — update / deactivate / reactivate
+  {
+    name: 'update_product',
+    description: 'Edit an existing product\'s details such as name, price, category, reorder level, or lead time. Call list_products first to find the product ID. Always confirm with the user before calling this.',
+    parameters: {
+      type: 'object',
+      properties: {
+        id:           { type: 'string', description: 'Product UUID' },
+        name:         { type: 'string', description: 'New display name (optional)' },
+        description:  { type: 'string', description: 'New description (optional)' },
+        category:     { type: 'string', description: 'New category (optional)' },
+        unit:         { type: 'string', description: 'New unit of measure (optional)' },
+        unitPrice:    { type: 'number', description: 'New unit price in INR (optional)' },
+        reorderLevel: { type: 'number', description: 'New reorder level (optional)' },
+        leadTimeDays: { type: 'number', description: 'New lead time in days (optional)' },
+      },
+      required: ['id'],
+    },
+    requiredPermission: 'products:write',
+    allowedRoles: ['admin', 'procurement_manager'],
+  },
+  {
+    name: 'deactivate_product',
+    description: 'Deactivate (soft-delete) a product so it no longer appears in active listings and cannot be ordered. Admin only. Call list_products first to find the ID. Always confirm before calling.',
+    parameters: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'Product UUID to deactivate' },
+      },
+      required: ['id'],
+    },
+    requiredPermission: 'products:write',
+    allowedRoles: ['admin'],
+  },
+  {
+    name: 'reactivate_product',
+    description: 'Reactivate a previously deactivated product. Admin only. Call list_products with isActive=false first to find deactivated products. Always confirm before calling.',
+    parameters: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', description: 'Product UUID to reactivate' },
+      },
+      required: ['id'],
+    },
+    requiredPermission: 'products:write',
+    allowedRoles: ['admin'],
+  },
+  // SUPPLIERS — create / update
+  {
+    name: 'create_supplier',
+    description: 'Add a new supplier to the system. Always confirm with the user before calling this.',
+    parameters: {
+      type: 'object',
+      properties: {
+        name:         { type: 'string', description: 'Supplier company name' },
+        contactName:  { type: 'string', description: 'Primary contact person name (optional)' },
+        email:        { type: 'string', description: 'Contact email (optional)' },
+        phone:        { type: 'string', description: 'Contact phone number (optional)' },
+        address:      { type: 'string', description: 'Street address (optional)' },
+        city:         { type: 'string', description: 'City (optional)' },
+        country:      { type: 'string', description: 'Country (optional)' },
+        paymentTerms: { type: 'string', description: 'Payment terms e.g. Net 30 (optional)' },
+        leadTimeDays: { type: 'number', description: 'Default lead time in days (optional)' },
+      },
+      required: ['name'],
+    },
+    requiredPermission: 'suppliers:read',
+    allowedRoles: ['admin', 'procurement_manager'],
+  },
+  {
+    name: 'update_supplier',
+    description: 'Update an existing supplier\'s details. Call list_suppliers first to find the supplier ID. Always confirm before calling.',
+    parameters: {
+      type: 'object',
+      properties: {
+        id:           { type: 'string', description: 'Supplier UUID' },
+        name:         { type: 'string', description: 'New name (optional)' },
+        contactName:  { type: 'string', description: 'New contact person (optional)' },
+        email:        { type: 'string', description: 'New email (optional)' },
+        phone:        { type: 'string', description: 'New phone (optional)' },
+        address:      { type: 'string', description: 'New address (optional)' },
+        city:         { type: 'string', description: 'New city (optional)' },
+        country:      { type: 'string', description: 'New country (optional)' },
+        paymentTerms: { type: 'string', description: 'New payment terms (optional)' },
+        leadTimeDays: { type: 'number', description: 'New lead time in days (optional)' },
+      },
+      required: ['id'],
+    },
+    requiredPermission: 'suppliers:read',
+    allowedRoles: ['admin', 'procurement_manager'],
+  },
+  // WAREHOUSES — create / update
+  {
+    name: 'create_warehouse',
+    description: 'Add a new warehouse to the system. Admin only. Always confirm before calling.',
+    parameters: {
+      type: 'object',
+      properties: {
+        name:        { type: 'string', description: 'Warehouse name' },
+        address:     { type: 'string', description: 'Street address (optional)' },
+        city:        { type: 'string', description: 'City (optional)' },
+        country:     { type: 'string', description: 'Country (optional)' },
+        capacity:    { type: 'number', description: 'Max units capacity (optional, no limit if omitted)' },
+        managerName: { type: 'string', description: 'Manager name (optional)' },
+      },
+      required: ['name'],
+    },
+    requiredPermission: 'warehouses:write',
+    allowedRoles: ['admin'],
+  },
+  {
+    name: 'update_warehouse',
+    description: 'Update an existing warehouse\'s details. Admin only. Call list_warehouses first to find the ID. Always confirm before calling.',
+    parameters: {
+      type: 'object',
+      properties: {
+        id:          { type: 'string', description: 'Warehouse UUID' },
+        name:        { type: 'string', description: 'New name (optional)' },
+        address:     { type: 'string', description: 'New address (optional)' },
+        city:        { type: 'string', description: 'New city (optional)' },
+        country:     { type: 'string', description: 'New country (optional)' },
+        capacity:    { type: 'number', description: 'New capacity in units (optional)' },
+        managerName: { type: 'string', description: 'New manager name (optional)' },
+      },
+      required: ['id'],
+    },
+    requiredPermission: 'warehouses:write',
+    allowedRoles: ['admin'],
+  },
+  // USERS — list / role / activate
+  {
+    name: 'list_users',
+    description: 'List system users. Can filter by role or active status. Admin and procurement manager only.',
+    parameters: {
+      type: 'object',
+      properties: {
+        role:     { type: 'string',  description: 'Filter by role: admin, procurement_manager, warehouse_staff, supplier, viewer (optional)' },
+        isActive: { type: 'boolean', description: 'true = active users only, false = inactive only (optional, default all)' },
+        search:   { type: 'string',  description: 'Search by name or email (optional)' },
+        limit:    { type: 'number',  description: 'Max rows to return, default 20' },
+      },
+    },
+    requiredPermission: 'users:read',
+  },
+  {
+    name: 'change_user_role',
+    description: 'Change the role of a user. Admin only. Call list_users first to find the user ID. For warehouse_staff role a warehouseId is required; for supplier role a supplierId is required. Always confirm before calling.',
+    parameters: {
+      type: 'object',
+      properties: {
+        userId:      { type: 'string', description: 'User UUID' },
+        role:        { type: 'string', description: 'New role: admin, procurement_manager, warehouse_staff, supplier, viewer' },
+        warehouseId: { type: 'string', description: 'Required when role is warehouse_staff' },
+        supplierId:  { type: 'string', description: 'Required when role is supplier' },
+      },
+      required: ['userId', 'role'],
+    },
+    requiredPermission: 'users:write',
+    allowedRoles: ['admin'],
+  },
+  {
+    name: 'set_user_active',
+    description: 'Activate or deactivate a user account. Admin and procurement manager only. Call list_users first to find the user ID. Always confirm before calling.',
+    parameters: {
+      type: 'object',
+      properties: {
+        userId:   { type: 'string',  description: 'User UUID' },
+        isActive: { type: 'boolean', description: 'true to activate, false to deactivate' },
+      },
+      required: ['userId', 'isActive'],
+    },
+    requiredPermission: 'users:read',
+    allowedRoles: ['admin', 'procurement_manager'],
+  },
 ];
 
 // ─── RBAC filter ───────────────────────────────────────────────────────────────
@@ -413,6 +588,86 @@ async function executeTool(name, args, scope) {
     case 'resolve_alert':
       return alertsService.resolve(args.id, scope);
 
+    case 'update_product':
+      return productsService.update(args.id, {
+        name:         args.name         || null,
+        description:  args.description  || null,
+        category:     args.category     || null,
+        unit:         args.unit         || null,
+        unitPrice:    args.unitPrice    ?? null,
+        reorderLevel: args.reorderLevel ?? null,
+        leadTimeDays: args.leadTimeDays ?? null,
+      }, scope);
+
+    case 'deactivate_product':
+      return productsService.remove(args.id, scope);
+
+    case 'reactivate_product':
+      return productsService.reactivate(args.id, scope);
+
+    case 'create_supplier':
+      return suppliersService.create({
+        name:         args.name,
+        contactName:  args.contactName  || null,
+        email:        args.email        || null,
+        phone:        args.phone        || null,
+        address:      args.address      || null,
+        city:         args.city         || null,
+        country:      args.country      || null,
+        paymentTerms: args.paymentTerms || null,
+        leadTimeDays: args.leadTimeDays ?? 0,
+      }, scope);
+
+    case 'update_supplier':
+      return suppliersService.update(args.id, {
+        name:         args.name         || null,
+        contactName:  args.contactName  || null,
+        email:        args.email        || null,
+        phone:        args.phone        || null,
+        address:      args.address      || null,
+        city:         args.city         || null,
+        country:      args.country      || null,
+        paymentTerms: args.paymentTerms || null,
+        leadTimeDays: args.leadTimeDays ?? null,
+      }, scope);
+
+    case 'create_warehouse':
+      return warehousesService.create({
+        name:        args.name,
+        address:     args.address     || null,
+        city:        args.city        || null,
+        country:     args.country     || null,
+        capacity:    args.capacity    ?? null,
+        managerName: args.managerName || null,
+      }, scope);
+
+    case 'update_warehouse':
+      return warehousesService.update(args.id, {
+        name:        args.name        || null,
+        address:     args.address     || null,
+        city:        args.city        || null,
+        country:     args.country     || null,
+        capacity:    args.capacity    ?? null,
+        managerName: args.managerName || null,
+      }, scope);
+
+    case 'list_users':
+      return usersService.list({
+        limit:    args.limit    || 20,
+        role:     args.role     || undefined,
+        isActive: args.isActive !== undefined ? args.isActive : undefined,
+        search:   args.search   || undefined,
+      }, scope);
+
+    case 'change_user_role':
+      return usersService.changeRole(args.userId, args.role, {
+        warehouseId: args.warehouseId || null,
+        supplierId:  args.supplierId  || null,
+      }, scope);
+
+    case 'set_user_active':
+      return usersService.setActive(args.userId, args.isActive, scope);
+
     default:
       throw new Error(`Unknown tool: ${name}`);
   }
@@ -427,16 +682,23 @@ Current user: ${user.email}
 Role: ${user.role}
 Date: ${new Date().toLocaleDateString('en-IN', { dateStyle: 'long' })}
 
-You help users manage inventory, purchase orders, shipments, and alerts using plain English.
+You help users manage inventory, purchase orders, shipments, alerts, suppliers, warehouses, products, and users using plain English.
 
-Rules:
-- For any operation that writes or changes data (create, approve, update, resolve), describe exactly what you will do and ask the user to confirm before executing the tool. Wait for explicit confirmation.
-- After a tool returns data, summarise it clearly. Use ₹ for Indian Rupee amounts. Format lists with bullet points.
-- If the user asks for something you cannot do due to their role, explain what access is needed.
-- When creating a purchase order, always call list_suppliers, list_products, and list_warehouses first to resolve names to their IDs — never guess at IDs.
-- When creating an inventory item, always call list_products and list_warehouses first to resolve names to IDs.
-- When creating a product, ask the user for SKU, name, unit price, and any other details they want to set before proceeding.
-- When the user references a PO by its number (e.g. PO-MR94ICQ3), call list_purchase_orders first to find the matching record and get its UUID, then use that UUID for any operations like approve, update, or cancel.
+FORMATTING RULES — strictly follow these:
+- Never use markdown. No **, *, #, ##, ___, backticks, or any other markdown symbols.
+- Write in plain text only.
+- For lists, use a simple dash and space: "- item" on its own line.
+- For amounts use the rupee symbol: e.g. Rs. 1,500.
+
+BEHAVIOUR RULES:
+- For any operation that writes or changes data (create, update, approve, resolve, deactivate, change role), describe exactly what you will do and ask the user to confirm before executing. Wait for explicit confirmation.
+- After a tool returns data, summarise it clearly and concisely.
+- If the user asks for something they cannot do due to their role, explain what access is needed.
+- When creating a purchase order, always call list_suppliers, list_products, and list_warehouses first to resolve names to IDs — never guess at IDs.
+- When creating an inventory item, always call list_products and list_warehouses first.
+- When updating or deactivating a product, supplier, or warehouse, call the relevant list tool first to find the ID.
+- When changing a user role, call list_users first to find the user ID; if the new role is warehouse_staff also call list_warehouses, if supplier also call list_suppliers.
+- When the user references a PO by its number (e.g. PO-MR94ICQ3), call list_purchase_orders first to get its UUID, then use that for further actions.
 - Keep responses concise and actionable.
 - Never mention tool names or internal implementation details.`;
 }
@@ -467,6 +729,20 @@ async function callGemini(params) {
     }
     throw err;
   }
+}
+
+// ─── Markdown stripper ────────────────────────────────────────────────────────
+// Safety net: remove common markdown symbols in case the model ignores instructions.
+
+function stripMarkdown(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/gs, '$1')   // **bold** → bold
+    .replace(/\*(.+?)\*/gs, '$1')        // *italic* → italic
+    .replace(/_{2}(.+?)_{2}/gs, '$1')    // __bold__ → bold
+    .replace(/_(.+?)_/gs, '$1')          // _italic_ → italic
+    .replace(/^#{1,6}\s+/gm, '')         // ## Heading → Heading
+    .replace(/`([^`]+)`/g, '$1')         // `code` → code
+    .replace(/^\*\s+/gm, '- ')           // * item → - item
 }
 
 // ─── Main entry point ──────────────────────────────────────────────────────────
@@ -533,7 +809,8 @@ async function generateReply(dbMessages, user, scope) {
   }
 
   console.log('[AI] final text:', lastResponse?.text?.slice?.(0, 100));
-  const text = lastResponse?.text ?? null;
+  const raw  = lastResponse?.text ?? null;
+  const text = raw ? stripMarkdown(raw) : null;
 
   return {
     text:       text || 'I was unable to generate a response. Please try again.',
