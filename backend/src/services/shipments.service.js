@@ -40,6 +40,7 @@ async function list({ page = 1, limit = 20, status, warehouseId, purchaseOrderId
   const { rows } = await db.query(
     `SELECT s.id, s.shipment_number, s.status, s.carrier, s.tracking_number,
             s.shipped_date, s.expected_arrival, s.actual_arrival, s.created_at,
+            s.purchase_order_id,
             w.name AS warehouse_name,
             po.po_number
      FROM shipments s

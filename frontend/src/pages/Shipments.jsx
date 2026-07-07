@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Truck } from 'lucide-react'
-import { getShipments, updateShipmentStatus } from '../api/shipments'
-import { formatDate } from '../utils/formatters'
+import { Truck, Eye } from 'lucide-react'
+import { getShipments, getShipmentById, updateShipmentStatus } from '../api/shipments'
+import { getPurchaseOrderById } from '../api/purchaseOrders'
+import { formatDate, formatINR } from '../utils/formatters'
 import Badge from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import Spinner from '../components/ui/Spinner'
@@ -46,6 +47,11 @@ export default function Shipments() {
   // Cancel with reason modal
   const [cancelModal,  setCancelModal]  = useState(null)
   const [cancelReason, setCancelReason] = useState('')
+
+  // Detail modal
+  const [detailShipment, setDetailShipment] = useState(null)
+  const [detailItems,    setDetailItems]    = useState(null)
+  const [detailLoading,  setDetailLoading]  = useState(false)
 
   const { toast } = useToast()
   const { user }  = useAuth()
@@ -106,6 +112,24 @@ export default function Shipments() {
     }
   }
 
+  const openDetail = async (s) => {
+    setDetailShipment(s)
+    setDetailItems(null)
+    setDetailLoading(true)
+    try {
+      const [shipRes, poRes] = await Promise.all([
+        getShipmentById(s.id),
+        getPurchaseOrderById(s.purchase_order_id),
+      ])
+      setDetailShipment(shipRes.data.data)
+      setDetailItems(poRes.data.data?.items ?? [])
+    } catch {
+      toast.error('Failed to load shipment details')
+    } finally {
+      setDetailLoading(false)
+    }
+  }
+
   const totalPages = Math.ceil(total / 20)
 
   return (
@@ -129,8 +153,7 @@ export default function Shipments() {
             <thead>
               <tr>
                 <th>Shipment #</th><th>PO Reference</th><th>Warehouse</th>
-                <th>Carrier</th><th>Status</th><th>Expected</th>
-                {canUpdate && <th>Actions</th>}
+                <th>Carrier</th><th>Status</th><th>Expected</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -146,23 +169,24 @@ export default function Shipments() {
                     </Badge>
                   </td>
                   <td className="page-td-muted">{formatDate(s.expected_arrival)}</td>
-                  {canUpdate && (
-                    <td>
-                      <div className="page-actions">
-                        {NEXT_STATUS[s.status] && (
+                  <td>
+                    <div className="page-actions">
+                      <button className="page-action-btn" onClick={() => openDetail(s)}>
+                        <Eye size={13} /> View
+                      </button>
+                      {canUpdate && NEXT_STATUS[s.status] && (
                           <button className="page-action-btn" onClick={() => openStatus(s)}>
                             Update status
                           </button>
                         )}
-                        {(s.status === 'pending' || s.status === 'in_transit') && (
-                          <button className="page-action-btn page-action-btn--danger"
-                            onClick={() => { setCancelModal(s); setCancelReason('') }}>
-                            Cancel
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  )}
+                      {canUpdate && (s.status === 'pending' || s.status === 'in_transit') && (
+                        <button className="page-action-btn page-action-btn--danger"
+                          onClick={() => { setCancelModal(s); setCancelReason('') }}>
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -177,6 +201,92 @@ export default function Shipments() {
           <button className="page-page-btn" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next →</button>
         </div>
       )}
+
+      {/* Detail modal */}
+      <Modal open={!!detailShipment} onClose={() => setDetailShipment(null)}
+        title={`Shipment — ${detailShipment?.shipment_number ?? ''}`} size="lg"
+        footer={<button className="page-btn-ghost" onClick={() => setDetailShipment(null)}>Close</button>}
+      >
+        {detailLoading || !detailItems ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><Spinner /></div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+              <div>
+                <p className="adj-label">Status</p>
+                <p style={{ marginTop: 4 }}>
+                  <Badge variant={STATUS_VARIANT[detailShipment.status] ?? 'neutral'} dot>
+                    {detailShipment.status.replace('_', ' ')}
+                  </Badge>
+                </p>
+              </div>
+              <div>
+                <p className="adj-label">Warehouse</p>
+                <p style={{ marginTop: 4, fontSize: 13.5 }}>{detailShipment.warehouse_name}</p>
+              </div>
+              <div>
+                <p className="adj-label">PO Reference</p>
+                <p style={{ marginTop: 4, fontSize: 13.5 }}><code className="page-sku">{detailShipment.po_number}</code></p>
+              </div>
+              <div>
+                <p className="adj-label">Carrier</p>
+                <p style={{ marginTop: 4, fontSize: 13.5 }}>{detailShipment.carrier ?? '—'}</p>
+              </div>
+              <div>
+                <p className="adj-label">Tracking Number</p>
+                <p style={{ marginTop: 4, fontSize: 13.5 }}>{detailShipment.tracking_number ?? '—'}</p>
+              </div>
+              <div>
+                <p className="adj-label">Expected Arrival</p>
+                <p style={{ marginTop: 4, fontSize: 13.5 }}>{formatDate(detailShipment.expected_arrival)}</p>
+              </div>
+              {detailShipment.shipped_date && (
+                <div>
+                  <p className="adj-label">Shipped Date</p>
+                  <p style={{ marginTop: 4, fontSize: 13.5 }}>{formatDate(detailShipment.shipped_date)}</p>
+                </div>
+              )}
+              {detailShipment.actual_arrival && (
+                <div>
+                  <p className="adj-label">Actual Arrival</p>
+                  <p style={{ marginTop: 4, fontSize: 13.5 }}>{formatDate(detailShipment.actual_arrival)}</p>
+                </div>
+              )}
+            </div>
+            {detailShipment.notes && (
+              <div>
+                <p className="adj-label">Notes</p>
+                <p style={{ marginTop: 4, fontSize: 13, color: 'var(--text-2)' }}>{detailShipment.notes}</p>
+              </div>
+            )}
+            <div>
+              <p className="adj-label" style={{ marginBottom: 10 }}>Items in Shipment</p>
+              <table className="page-table">
+                <thead>
+                  <tr>
+                    <th>SKU</th><th>Product</th><th>Unit</th>
+                    <th className="text-right">Qty</th>
+                    <th className="text-right">Unit Price</th>
+                    <th className="text-right">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {detailItems.map((item) => (
+                    <tr key={item.id}>
+                      <td><code className="page-sku">{item.sku}</code></td>
+                      <td><span className="page-product-name">{item.product_name}</span></td>
+                      <td className="page-td-muted">{item.unit}</td>
+                      <td className="text-right page-mono">{item.quantity}</td>
+                      <td className="text-right page-mono">{formatINR(item.unit_price)}</td>
+                      <td className="text-right page-mono">{formatINR(item.quantity * item.unit_price)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Advance status modal */}
       <Modal open={!!statusModal} onClose={() => setStatusModal(null)}
