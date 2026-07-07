@@ -63,12 +63,10 @@ async function getById(id, scope) {
     `SELECT po.*, s.name AS supplier_name, s.contact_name AS supplier_contact,
             s.email AS supplier_email, s.phone AS supplier_phone,
             w.name AS warehouse_name, w.city AS warehouse_city,
-            wm.first_name || ' ' || wm.last_name AS warehouse_manager,
-            wm.email AS warehouse_manager_email
+            w.manager_name AS warehouse_manager
      FROM purchase_orders po
-     JOIN suppliers  s  ON s.id  = po.supplier_id
-     JOIN warehouses w  ON w.id  = po.warehouse_id
-     LEFT JOIN users wm ON wm.id = w.manager_id
+     JOIN suppliers  s ON s.id = po.supplier_id
+     JOIN warehouses w ON w.id = po.warehouse_id
      WHERE po.id = $1`,
     [id],
   );

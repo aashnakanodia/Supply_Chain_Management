@@ -68,16 +68,14 @@ async function list({ page = 1, limit = 20, status, warehouseId, purchaseOrderId
 async function getById(id, scope) {
   const { rows } = await db.query(
     `SELECT s.*, w.name AS warehouse_name, w.city AS warehouse_city,
+            w.manager_name AS warehouse_manager,
             po.po_number, po.supplier_id, po.status AS po_status,
             sup.name AS supplier_name, sup.contact_name AS supplier_contact,
-            sup.email AS supplier_email, sup.phone AS supplier_phone,
-            wm.first_name || ' ' || wm.last_name AS warehouse_manager,
-            wm.email AS warehouse_manager_email
+            sup.email AS supplier_email, sup.phone AS supplier_phone
      FROM shipments s
      JOIN warehouses      w   ON w.id   = s.warehouse_id
      JOIN purchase_orders po  ON po.id  = s.purchase_order_id
      JOIN suppliers       sup ON sup.id = po.supplier_id
-     LEFT JOIN users      wm  ON wm.id  = w.manager_id
      WHERE s.id = $1`,
     [id],
   );

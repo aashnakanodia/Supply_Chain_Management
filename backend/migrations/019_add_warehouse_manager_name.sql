@@ -1,0 +1,1 @@
+ALTER TABLE warehouses ADD COLUMN IF NOT EXISTS manager_name VARCHAR(255);

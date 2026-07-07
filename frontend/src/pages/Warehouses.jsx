@@ -8,7 +8,7 @@ import { useToast } from '../hooks/useToast'
 import { useAuth } from '../context/AuthContext'
 import './AppPage.css'
 
-const EMPTY_FORM = { name: '', address: '', city: '', country: '', capacity: '' }
+const EMPTY_FORM = { name: '', address: '', city: '', country: '', capacity: '', managerName: '' }
 
 export default function Warehouses() {
   const [warehouses, setWarehouses] = useState([])
@@ -51,7 +51,8 @@ export default function Warehouses() {
       address:  w.address  ?? '',
       city:     w.city     ?? '',
       country:  w.country  ?? '',
-      capacity: w.capacity != null ? String(w.capacity) : '',
+      capacity:    w.capacity != null ? String(w.capacity) : '',
+      managerName: w.manager_name ?? '',
     })
     setModalOpen(true)
   }
@@ -67,7 +68,8 @@ export default function Warehouses() {
         address:  form.address.trim()  || undefined,
         city:     form.city.trim()     || undefined,
         country:  form.country.trim()  || undefined,
-        capacity: form.capacity !== '' ? parseInt(form.capacity) : undefined,
+        capacity:    form.capacity    !== '' ? parseInt(form.capacity) : undefined,
+        managerName: form.managerName.trim() || undefined,
       }
       if (editing) {
         await updateWarehouse(editing.id, payload)
@@ -184,6 +186,11 @@ export default function Warehouses() {
             <label className="adj-label">Capacity (units)</label>
             <input className="page-search-input" style={{ marginTop: 6, width: '100%' }}
               type="number" min="0" placeholder="e.g. 10000" value={form.capacity} onChange={set('capacity')} />
+          </div>
+          <div>
+            <label className="adj-label">Manager Name</label>
+            <input className="page-search-input" style={{ marginTop: 6, width: '100%' }}
+              placeholder="e.g. Rajesh Kumar" value={form.managerName} onChange={set('managerName')} />
           </div>
         </div>
       </Modal>

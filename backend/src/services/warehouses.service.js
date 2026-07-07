@@ -18,10 +18,9 @@ async function list({ page = 1, limit = 20, isActive = true } = {}, scope) {
 
   const { rows } = await db.query(
     `SELECT w.id, w.name, w.address, w.city, w.country, w.capacity, w.is_active,
-            w.manager_id, u.first_name || ' ' || u.last_name AS manager_name,
+            w.manager_name,
             w.created_at
      FROM warehouses w
-     LEFT JOIN users u ON u.id = w.manager_id
      WHERE ${where.join(' AND ')}
      ORDER BY w.name ASC
      LIMIT $${params.length - 1} OFFSET $${params.length}`,
@@ -43,24 +42,21 @@ async function getById(id, scope) {
   }
 
   const { rows } = await db.query(
-    `SELECT w.*, u.first_name || ' ' || u.last_name AS manager_name
-     FROM warehouses w
-     LEFT JOIN users u ON u.id = w.manager_id
-     WHERE w.id = $1`,
+    `SELECT * FROM warehouses WHERE id = $1`,
     [id],
   );
   if (!rows[0]) throw new AppError('Warehouse not found', 404, 'NOT_FOUND');
   return rows[0];
 }
 
-async function create({ name, address, city, country, capacity, managerId }, scope) {
+async function create({ name, address, city, country, capacity, managerName }, scope) {
   if (scope.role !== 'admin') throw new AppError('Access denied', 403, 'FORBIDDEN');
 
   const { rows } = await db.query(
-    `INSERT INTO warehouses (name, address, city, country, capacity, manager_id)
+    `INSERT INTO warehouses (name, address, city, country, capacity, manager_name)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [name, address || null, city || null, country || null, capacity || null, managerId || null],
+    [name, address || null, city || null, country || null, capacity || null, managerName || null],
   );
   return rows[0];
 }
@@ -70,18 +66,18 @@ async function update(id, fields, scope) {
 
   const { rows } = await db.query(
     `UPDATE warehouses
-     SET name       = COALESCE($1, name),
-         address    = COALESCE($2, address),
-         city       = COALESCE($3, city),
-         country    = COALESCE($4, country),
-         capacity   = COALESCE($5, capacity),
-         manager_id = COALESCE($6, manager_id),
-         is_active  = COALESCE($7, is_active),
-         updated_at = NOW()
+     SET name         = COALESCE($1, name),
+         address      = COALESCE($2, address),
+         city         = COALESCE($3, city),
+         country      = COALESCE($4, country),
+         capacity     = COALESCE($5, capacity),
+         manager_name = COALESCE($6, manager_name),
+         is_active    = COALESCE($7, is_active),
+         updated_at   = NOW()
      WHERE id = $8
      RETURNING *`,
     [fields.name || null, fields.address || null, fields.city || null,
-     fields.country || null, fields.capacity ?? null, fields.managerId || null,
+     fields.country || null, fields.capacity ?? null, fields.managerName || null,
      fields.isActive ?? null, id],
   );
   if (!rows[0]) throw new AppError('Warehouse not found', 404, 'NOT_FOUND');

@@ -439,9 +439,10 @@ export default function PurchaseOrders() {
               <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '12px 14px' }}>
                 <p style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Warehouse Manager</p>
                 <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-1)' }}>{detailPO.warehouse_name}</p>
-                {detailPO.warehouse_manager && <p style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 3 }}>👤 {detailPO.warehouse_manager}</p>}
-                {detailPO.warehouse_manager_email && <a href={`mailto:${detailPO.warehouse_manager_email}`} style={{ fontSize: 12, color: 'var(--primary)', display: 'block', marginTop: 3, textDecoration: 'none' }}>✉️ {detailPO.warehouse_manager_email}</a>}
-                {!detailPO.warehouse_manager && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>No manager assigned</p>}
+                {detailPO.warehouse_manager
+                  ? <p style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 3 }}>👤 {detailPO.warehouse_manager}</p>
+                  : <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 3 }}>No manager assigned</p>
+                }
               </div>
             </div>
 
