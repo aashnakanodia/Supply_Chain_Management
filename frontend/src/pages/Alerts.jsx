@@ -4,6 +4,7 @@ import { Bell, CheckCircle, Eye, ShoppingCart } from 'lucide-react'
 import { getAlerts, resolveAlert, markAlertRead } from '../api/alerts'
 import { formatTimeAgo } from '../utils/formatters'
 import Badge from '../components/ui/Badge'
+import Modal from '../components/ui/Modal'
 import Spinner from '../components/ui/Spinner'
 import EmptyState from '../components/ui/EmptyState'
 import useSocket from '../hooks/useSocket'
@@ -27,18 +28,17 @@ const TABS = [
 ]
 
 export default function Alerts() {
-  const [alerts,  setAlerts]  = useState([])
-  const [loading, setLoading] = useState(true)
-  const [tab,     setTab]     = useState('active')
-  const [acting,  setActing]  = useState(null)
+  const [alerts,      setAlerts]      = useState([])
+  const [loading,     setLoading]     = useState(true)
+  const [tab,         setTab]         = useState('active')
+  const [acting,      setActing]      = useState(null)
+  const [confirmAlert, setConfirmAlert] = useState(null)
   const { toast } = useToast()
   const { user }  = useAuth()
   const ctx       = useOutletContext()
   const navigate  = useNavigate()
 
   const canWrite   = ['admin', 'procurement_manager'].includes(user?.role)
-  // low_stock alerts should only be manually resolved by procurement/admin (they have the
-  // authority to create POs). Warehouse staff can resolve other alert types (damage, count etc).
   const canResolveAlert = (a) => {
     if (a.type === 'low_stock') return canWrite
     return ['admin', 'procurement_manager', 'warehouse_staff'].includes(user?.role)
@@ -186,7 +186,11 @@ export default function Alerts() {
                       <button
                         className="page-action-btn page-action-btn--primary"
                         disabled={acting === a.id}
-                        onClick={(e) => { e.stopPropagation(); resolve(a.id) }}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (a.type === 'low_stock') setConfirmAlert(a)
+                          else resolve(a.id)
+                        }}
                       >
                         {acting === a.id ? <Spinner size={13} color="white" /> : <><CheckCircle size={13} /> Resolve</>}
                       </button>
@@ -204,6 +208,34 @@ export default function Alerts() {
           })}
         </div>
       )}
+
+      <Modal
+        open={!!confirmAlert}
+        onClose={() => setConfirmAlert(null)}
+        title="Dismiss low stock alert?"
+        size="sm"
+        footer={<>
+          <button className="page-btn-ghost" onClick={() => setConfirmAlert(null)}>Cancel</button>
+          <button
+            className="page-btn-primary"
+            style={{ background: 'var(--warning, #f59e0b)' }}
+            disabled={acting === confirmAlert?.id}
+            onClick={() => { resolve(confirmAlert.id); setConfirmAlert(null) }}
+          >
+            {acting === confirmAlert?.id ? <Spinner size={16} color="white" /> : 'Dismiss anyway'}
+          </button>
+        </>}
+      >
+        <p style={{ fontSize: 13.5, color: 'var(--text-2)', lineHeight: 1.6 }}>
+          Stock for <strong>{confirmAlert?.product_name}</strong> is still below the reorder point.
+          Dismissing this alert won't restock the item — a new alert won't appear until stock levels change.
+        </p>
+        {confirmAlert?.current_stock != null && (
+          <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 8 }}>
+            Current stock: <strong>{confirmAlert.current_stock}</strong> &nbsp;/&nbsp; Reorder at: <strong>{confirmAlert.reorder_point}</strong>
+          </p>
+        )}
+      </Modal>
     </div>
   )
 }
