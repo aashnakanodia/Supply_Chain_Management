@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight, CheckCircle, Package, Bell, ShoppingCart,
-  Truck, Users, BarChart3, Shield, Activity, FileText, TrendingUp,
+  Truck, Users, BarChart3, Shield, Activity, FileText, TrendingUp, MessageCircle,
 } from 'lucide-react'
 import HexLogo from '../components/ui/HexLogo'
 import './Landing.css'
@@ -241,14 +241,12 @@ export default function Landing() {
               <span className="lp-hero-brand">Synapse</span>
             </div>
             <h1 className="lp-hero-h1">
-              Procurement, inventory<br />
-              and fulfilment —<br />
+              Procurement, inventory,<br />
+              fulfilment, intelligence<br />
               <em>unified.</em>
             </h1>
             <p className="lp-hero-sub">
-              Track every SKU, manage PO approvals, link shipments to purchase
-              orders, and receive automated low-stock alerts — built for
-              India's electronics distribution teams.
+              End-to-end supply chain visibility with a built-in AI assistant. Manage inventory, POs, shipments, and alerts all in one place.
             </p>
             <div className="lp-hero-actions">
               <Link to="/auth?mode=signup" className="lp-cta-primary">
@@ -272,8 +270,7 @@ export default function Landing() {
               <p className="lp-section-eyebrow">The Platform</p>
               <h2 className="lp-section-h2">One system. Every link in the chain.</h2>
               <p className="lp-section-desc">
-                Six integrated modules — from purchase requisition to goods receipt —
-                with role-based visibility enforced at the API layer.
+                Six integrated modules covering purchase requisition to goods receipt, with role-based visibility enforced at the API layer.
               </p>
             </div>
           </Reveal>
@@ -388,13 +385,76 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── Synapse AI ── */}
+      <section className="lp-features" id="features">
+        <div className="lp-section-inner">
+          <Reveal>
+            <div className="lp-ai-split">
+              <div className="lp-ai-split-text">
+                <p className="lp-section-eyebrow">Synapse AI</p>
+                <h2 className="lp-section-h2" style={{ textAlign: 'left', maxWidth: '100%' }}>Your supply chain, on demand</h2>
+                <p className="lp-section-desc" style={{ textAlign: 'left', maxWidth: '100%' }}>
+                  A built-in AI assistant powered by Google Gemini. Ask questions in plain English, get live answers, and take direct action without leaving the chat.
+                </p>
+                <ul className="lp-ai-list">
+                  {[
+                    { icon: MessageCircle, text: 'Query live inventory, POs, shipments and alerts in plain English' },
+                    { icon: ShoppingCart,  text: 'Create purchase orders and manage products directly from chat' },
+                    { icon: Users,         text: 'Manage user roles and account status without leaving the window' },
+                    { icon: Activity,      text: 'Conversations are saved and resumable across sessions' },
+                  ].map(({ icon: Icon, text }) => (
+                    <li key={text} className="lp-ai-list-item">
+                      <span className="lp-ai-list-icon"><Icon size={14} /></span>
+                      <span>{text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="lp-ai-chat">
+                <div className="lp-ai-chat-header">
+                  <div className="lp-ai-chat-avatar">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+                      <circle cx="12" cy="12" r="4" fill="#2dd4cc" />
+                      <circle cx="12" cy="4"  r="2" fill="#0e9f99" opacity=".7" />
+                      <circle cx="19.2" cy="8"  r="2" fill="#0e9f99" opacity=".7" />
+                      <circle cx="19.2" cy="16" r="2" fill="#0e9f99" opacity=".7" />
+                      <circle cx="12" cy="20" r="2" fill="#0e9f99" opacity=".7" />
+                      <circle cx="4.8" cy="16" r="2" fill="#0e9f99" opacity=".7" />
+                      <circle cx="4.8" cy="8"  r="2" fill="#0e9f99" opacity=".7" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="lp-ai-chat-name">Synapse AI</div>
+                    <div className="lp-ai-chat-sub">Your supply chain assistant</div>
+                  </div>
+                  <span className="lp-ai-chat-live"><span className="dp-live-dot" />Live</span>
+                </div>
+                <div className="lp-ai-chat-body">
+                  <div className="lp-ai-bubble lp-ai-bubble--user">What needs my attention today?</div>
+                  <div className="lp-ai-bubble lp-ai-bubble--ai">3 critical stock alerts, 7 purchase orders pending approval, and 2 shipments arriving today. Mi 11X Pro is the most urgent with only 2 units left.</div>
+                  <div className="lp-ai-bubble lp-ai-bubble--user">Create a PO for 50 units of Mi 11X Pro</div>
+                  <div className="lp-ai-bubble lp-ai-bubble--ai">Done. PO-2848 has been created for 50 units of Mi 11X Pro and is now pending admin approval.</div>
+                  <div className="lp-ai-bubble lp-ai-bubble--user">Show in-transit shipments</div>
+                  <div className="lp-ai-bubble lp-ai-bubble--ai">2 shipments in transit: SHP-0142 via Blue Dart arriving today, and SHP-0139 via DTDC arriving tomorrow.</div>
+                </div>
+                <div className="lp-ai-chat-input">
+                  <span className="lp-ai-chat-placeholder">Ask about inventory, POs, shipments…</span>
+                  <div className="lp-ai-chat-send"><ArrowRight size={12} /></div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ── Workflow ── */}
       <section className="lp-workflow" id="workflow">
         <div className="lp-section-inner">
           <Reveal>
             <div className="lp-section-head">
               <p className="lp-section-eyebrow">Purchase Order Lifecycle</p>
-              <h2 className="lp-section-h2">From requisition to goods receipt — tracked at every step.</h2>
+              <h2 className="lp-section-h2">From requisition to goods receipt, tracked at every step.</h2>
               <p className="lp-section-desc">
                 Synapse enforces a structured approval chain so nothing slips through unchecked.
               </p>
@@ -426,39 +486,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Features list ── */}
-      <section className="lp-features" id="features">
-        <div className="lp-section-inner">
-          <Reveal>
-            <div className="lp-section-head">
-              <p className="lp-section-eyebrow">Capabilities</p>
-              <h2 className="lp-section-h2">Built for how distribution actually works</h2>
-            </div>
-          </Reveal>
-
-          <div className="lp-feat-grid">
-            {[
-              { icon: Package,     title: 'Multi-warehouse inventory',     desc: 'Assign products to warehouses, track per-location stock, and set warehouse-specific reorder thresholds.' },
-              { icon: Bell,        title: 'Socket.io real-time alerts',    desc: 'Low stock, critical levels, PO approvals, and shipment updates pushed live — no polling, no refresh.' },
-              { icon: ShoppingCart,title: 'Structured PO approval chain',  desc: 'Enforce Draft → Approved → Ordered → Received. Only Admins approve; only Procurement Managers create.' },
-              { icon: Truck,       title: 'Shipment-to-PO linking',        desc: 'Every shipment references an approved PO. Auto-advance to Ordered when a shipment is created.' },
-              { icon: Users,       title: 'Five-role RBAC',                desc: 'Admin, Procurement Manager, Warehouse Staff, Supplier, and Viewer — JWT-scoped, API-enforced.' },
-              { icon: BarChart3,   title: 'Dashboard analytics',           desc: 'KPI cards, stock movement summaries, pending PO counts, and alert severity — all computed server-side.' },
-              { icon: Shield,      title: 'JWT + refresh token auth',      desc: 'Access tokens (15 min) + refresh tokens (7 days) with secure rotation. Email-based password reset.' },
-              { icon: Activity,    title: 'Immutable audit log',           desc: 'Every inventory movement, PO change, and login recorded with user, timestamp, and before/after state.' },
-            ].map(({ icon: Icon, title, desc }, i) => (
-              <Reveal key={title} delay={i * 40}>
-                <div className="lp-feat-card">
-                  <div className="lp-feat-icon"><Icon size={16} /></div>
-                  <h3 className="lp-feat-title">{title}</h3>
-                  <p className="lp-feat-desc">{desc}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── CTA ── */}
       <section className="lp-cta-section">
         <div className="lp-cta-inner">
@@ -468,9 +495,7 @@ export default function Landing() {
               <span className="lp-cta-logo-name">Synapse</span>
             </div>
             <h2 className="lp-cta-h2">Ready to connect your supply chain?</h2>
-            <p className="lp-cta-sub">
-              Free to explore. Seed data included. Five roles, six modules, full audit trail — live in under a minute.
-            </p>
+            <p className="lp-cta-sub">Built for teams who move fast and need full visibility.</p>
             <div className="lp-cta-row">
               <Link to="/auth?mode=signup" className="lp-cta-primary">
                 Create free account <ArrowRight size={16} />
