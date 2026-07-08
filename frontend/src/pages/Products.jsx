@@ -39,7 +39,7 @@ export default function Products() {
 
   const { toast } = useToast()
   const { user }  = useAuth()
-  const canWrite    = ['admin', 'procurement_manager'].includes(user?.role)
+  const canWrite    = user?.role === 'admin'
   const canDeactivate = user?.role === 'admin'
 
   const load = useCallback(() => {

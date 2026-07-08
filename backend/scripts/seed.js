@@ -10,7 +10,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
 });
 
-// All monetary values in Indian Rupees (INR)
+// Company: NovaMart Distribution Pvt. Ltd.
+// A consumer electronics distributor supplying retail stores across India.
+// All monetary values in Indian Rupees (INR).
 
 async function seed() {
   const client = await pool.connect();
@@ -28,72 +30,72 @@ async function seed() {
     console.log('Cleared existing data...');
 
     // ── Warehouses ─────────────────────────────────────────────────────────────
-    const { rows: [whBLR] } = await client.query(`
+    const { rows: [whDEL] } = await client.query(`
       INSERT INTO warehouses (name, address, city, country, capacity)
-      VALUES ('Bengaluru Assembly Plant',
-              'Plot 14-B, Electronics City Phase 1, Hosur Road',
-              'Bengaluru', 'India', 80000)
+      VALUES ('Delhi NCR Warehouse',
+              'Plot 22, Udyog Vihar Phase IV, Sector 18',
+              'Gurugram', 'India', 50000)
       RETURNING id
     `);
-    const { rows: [whPNQ] } = await client.query(`
+    const { rows: [whMUM] } = await client.query(`
       INSERT INTO warehouses (name, address, city, country, capacity)
-      VALUES ('Pune Manufacturing Facility',
-              'Gat No. 152, MIDC Industrial Area, Pimpri-Chinchwad',
-              'Pune', 'India', 65000)
+      VALUES ('Mumbai Fulfilment Center',
+              'Unit 8, Bhiwandi Logistics Park, NH-48',
+              'Mumbai', 'India', 60000)
       RETURNING id
     `);
-    const { rows: [whCHN] } = await client.query(`
+    const { rows: [whHYD] } = await client.query(`
       INSERT INTO warehouses (name, address, city, country, capacity)
-      VALUES ('Chennai Distribution Hub',
-              'No. 7, SIPCOT IT Park Phase II, Siruseri',
-              'Chennai', 'India', 50000)
+      VALUES ('Hyderabad Distribution Hub',
+              'Survey No. 41, IDA Jeedimetla, Phase III',
+              'Hyderabad', 'India', 40000)
       RETURNING id
     `);
-    const wh = { blr: whBLR.id, pnq: whPNQ.id, chn: whCHN.id };
+    const wh = { del: whDEL.id, mum: whMUM.id, hyd: whHYD.id };
     console.log('Warehouses created...');
 
     // ── Suppliers ──────────────────────────────────────────────────────────────
-    const { rows: [supMouser] } = await client.query(`
+    const { rows: [supSamsung] } = await client.query(`
       INSERT INTO suppliers
         (name, contact_name, email, phone, address, city, country, payment_terms, lead_time_days)
-      VALUES ('Mouser Electronics India Pvt. Ltd.',
-              'Vikram Mehta', 'v.mehta@mouser-india.com', '+91-80-4567-8901',
-              '3rd Floor, Prestige Tech Park, Outer Ring Road, Devarabeesanahalli',
-              'Bengaluru', 'India', 'Advance Payment', 7)
+      VALUES ('Samsung India Electronics Pvt. Ltd.',
+              'Arjun Malhotra', 'a.malhotra@samsung-india.com', '+91-124-488-8800',
+              '6th Floor, DLF Centre, Sansad Marg',
+              'New Delhi', 'India', 'Net 30', 7)
       RETURNING id
     `);
-    const { rows: [supElectro] } = await client.query(`
+    const { rows: [supApple] } = await client.query(`
       INSERT INTO suppliers
         (name, contact_name, email, phone, address, city, country, payment_terms, lead_time_days)
-      VALUES ('Electrocomponents India Pvt. Ltd.',
-              'Deepa Nair', 'd.nair@electrocomponents.in', '+91-22-6789-0123',
-              'Unit 5B, Peninsula Business Park, Senapati Bapat Marg, Lower Parel',
-              'Mumbai', 'India', 'Net 30', 10)
+      VALUES ('Apple India Pvt. Ltd.',
+              'Meera Iyer', 'm.iyer@apple-india.com', '+91-80-6660-9999',
+              '19th Floor, Vittal Mallya Road, UB City',
+              'Bengaluru', 'India', 'Advance Payment', 10)
       RETURNING id
     `);
-    const { rows: [supSuntech] } = await client.query(`
+    const { rows: [supBoat] } = await client.query(`
       INSERT INTO suppliers
         (name, contact_name, email, phone, address, city, country, payment_terms, lead_time_days)
-      VALUES ('SunTech PCB Solutions Pvt. Ltd.',
-              'Harish Gupta', 'h.gupta@suntechpcb.in', '+91-120-4567-8900',
-              'B-47, Sector 63, NOIDA Industrial Development Area',
-              'Noida', 'India', 'Net 45', 21)
+      VALUES ('Imagine Marketing Ltd. (boAt)',
+              'Rohit Sharma', 'r.sharma@boat-lifestyle.com', '+91-11-4560-7890',
+              'B-85, Sector 4, Noida Industrial Area',
+              'Noida', 'India', 'Net 15', 5)
       RETURNING id
     `);
-    const { rows: [supAmara] } = await client.query(`
+    const { rows: [supAnker] } = await client.query(`
       INSERT INTO suppliers
         (name, contact_name, email, phone, address, city, country, payment_terms, lead_time_days)
-      VALUES ('Amara Raja Power Systems Ltd.',
-              'Srinivas Reddy', 's.reddy@amararaja.in', '+91-877-234-5678',
-              'Survey No. 93, Karakambadi Road, Renigunta',
-              'Tirupati', 'India', 'Net 30', 14)
+      VALUES ('Anker Innovations India Pvt. Ltd.',
+              'Priya Menon', 'p.menon@anker.com', '+91-22-6789-4567',
+              'Level 4, One BKC, Bandra Kurla Complex',
+              'Mumbai', 'India', 'Net 30', 7)
       RETURNING id
     `);
     const sup = {
-      mouser:  supMouser.id,
-      electro: supElectro.id,
-      suntech: supSuntech.id,
-      amara:   supAmara.id,
+      samsung: supSamsung.id,
+      apple:   supApple.id,
+      boat:    supBoat.id,
+      anker:   supAnker.id,
     };
     console.log('Suppliers created...');
 
@@ -102,67 +104,65 @@ async function seed() {
 
     const { rows: [uAdmin] } = await client.query(`
       INSERT INTO users (email, password_hash, first_name, last_name, role)
-      VALUES ($1, $2, 'Rajesh', 'Iyer', 'admin') RETURNING id
-    `, ['r.iyer@techvolt.in', await hash('RIyer@TechVolt26')]);
+      VALUES ($1, $2, 'Priya', 'Sharma', 'admin') RETURNING id
+    `, ['p.sharma@novamart.in', await hash('PSharma@Nova26')]);
 
     const { rows: [uProcure] } = await client.query(`
       INSERT INTO users (email, password_hash, first_name, last_name, role)
-      VALUES ($1, $2, 'Ananya', 'Krishnamurthy', 'procurement_manager') RETURNING id
-    `, ['a.krishnamurthy@techvolt.in', await hash('AKrishna@TechVolt26')]);
+      VALUES ($1, $2, 'Rahul', 'Gupta', 'procurement_manager') RETURNING id
+    `, ['r.gupta@novamart.in', await hash('RGupta@Nova26')]);
 
-    const { rows: [uStaffBLR] } = await client.query(`
+    const { rows: [uStaffDEL] } = await client.query(`
       INSERT INTO users (email, password_hash, first_name, last_name, role, warehouse_id)
-      VALUES ($1, $2, 'Suresh', 'Babu', 'warehouse_staff', $3) RETURNING id
-    `, ['s.babu@techvolt.in', await hash('SBabu@TechVolt26'), wh.blr]);
+      VALUES ($1, $2, 'Deepak', 'Kumar', 'warehouse_staff', $3) RETURNING id
+    `, ['d.kumar@novamart.in', await hash('DKumar@Nova26'), wh.del]);
 
-    const { rows: [uStaffPNQ] } = await client.query(`
+    const { rows: [uStaffMUM] } = await client.query(`
       INSERT INTO users (email, password_hash, first_name, last_name, role, warehouse_id)
-      VALUES ($1, $2, 'Pooja', 'Deshmukh', 'warehouse_staff', $3) RETURNING id
-    `, ['p.deshmukh@techvolt.in', await hash('PDeshmukh@TechVolt26'), wh.pnq]);
+      VALUES ($1, $2, 'Sneha', 'Patel', 'warehouse_staff', $3) RETURNING id
+    `, ['s.patel@novamart.in', await hash('SPatel@Nova26'), wh.mum]);
 
     await client.query(`
       INSERT INTO users (email, password_hash, first_name, last_name, role, supplier_id)
-      VALUES ($1, $2, 'Vikram', 'Mehta', 'supplier', $3) RETURNING id
-    `, ['v.mehta@mouser-india.com', await hash('VMehta@Mouser26'), sup.mouser]);
+      VALUES ($1, $2, 'Arjun', 'Malhotra', 'supplier', $3)
+    `, ['a.malhotra@samsung-india.com', await hash('AMalhotra@Samsung26'), sup.samsung]);
 
     await client.query(`
       INSERT INTO users (email, password_hash, first_name, last_name, role, supplier_id)
-      VALUES ($1, $2, 'Deepa', 'Nair', 'supplier', $3) RETURNING id
-    `, ['d.nair@electrocomponents.in', await hash('DNair@Electro26'), sup.electro]);
+      VALUES ($1, $2, 'Rohit', 'Sharma', 'supplier', $3)
+    `, ['r.sharma@boat-lifestyle.com', await hash('RSharma@Boat26'), sup.boat]);
 
     await client.query(`
       INSERT INTO users (email, password_hash, first_name, last_name, role)
-      VALUES ($1, $2, 'Karthik', 'Sundaram', 'viewer')
-    `, ['k.sundaram@techvolt.in', await hash('KSundaram@TechVolt26')]);
+      VALUES ($1, $2, 'Ritu', 'Agarwal', 'viewer')
+    `, ['r.agarwal@novamart.in', await hash('RAgarwal@Nova26')]);
 
     const u = {
       admin:    uAdmin.id,
       procure:  uProcure.id,
-      staffBLR: uStaffBLR.id,
-      staffPNQ: uStaffPNQ.id,
+      staffDEL: uStaffDEL.id,
+      staffMUM: uStaffMUM.id,
     };
 
-    await client.query(`UPDATE warehouses SET manager_id = $1 WHERE id = $2`, [u.staffBLR, wh.blr]);
-    await client.query(`UPDATE warehouses SET manager_id = $1 WHERE id = $2`, [u.staffPNQ, wh.pnq]);
     console.log('Users created...');
 
-    // ── Products (prices in INR) ───────────────────────────────────────────────
+    // ── Products ───────────────────────────────────────────────────────────────
     const productDefs = [
-      { sku: 'MCU-ESP32-WROOM32',    name: 'ESP32-WROOM-32D WiFi+BT Module',        category: 'Microcontrollers',   unit: 'piece', unit_price: 245.00,  reorder_level: 500,   lead_time_days: 14 },
-      { sku: 'MCU-STM32F103C8T6',    name: 'STM32F103C8T6 ARM Cortex-M3 MCU',       category: 'Microcontrollers',   unit: 'piece', unit_price: 105.00,  reorder_level: 1000,  lead_time_days: 10 },
-      { sku: 'CAP-ELEC-10UF-50V',    name: '10µF 50V Electrolytic Capacitor',        category: 'Passive Components', unit: 'piece', unit_price: 6.50,    reorder_level: 5000,  lead_time_days: 21 },
-      { sku: 'CAP-MLCC-100NF-50V',   name: '100nF 50V MLCC Capacitor 0402',          category: 'Passive Components', unit: 'piece', unit_price: 1.50,    reorder_level: 10000, lead_time_days: 21 },
-      { sku: 'RES-10K-0402-1PCT',    name: '10kΩ 1% 0.1W Resistor 0402',            category: 'Passive Components', unit: 'piece', unit_price: 0.80,    reorder_level: 10000, lead_time_days: 21 },
-      { sku: 'SEMI-IRLZ44N-MOSFET',  name: 'IRLZ44N N-Channel Power MOSFET TO-220', category: 'Semiconductors',     unit: 'piece', unit_price: 58.00,   reorder_level: 2000,  lead_time_days: 10 },
-      { sku: 'REG-AMS1117-33',        name: 'AMS1117-3.3V LDO Voltage Regulator',    category: 'Semiconductors',     unit: 'piece', unit_price: 16.00,   reorder_level: 3000,  lead_time_days: 10 },
-      { sku: 'DISP-TFT-7IN-800X480', name: '7" TFT LCD Display 800×480 RGB',         category: 'Displays',           unit: 'piece', unit_price: 1550.00, reorder_level: 100,   lead_time_days: 28 },
-      { sku: 'DISP-OLED-096-128X64', name: '0.96" OLED Display 128×64 I2C',          category: 'Displays',           unit: 'piece', unit_price: 265.00,  reorder_level: 500,   lead_time_days: 21 },
-      { sku: 'BAT-LIPO-3000MAH',     name: '3.7V 3000mAh Li-Po Battery Pack',        category: 'Power',              unit: 'piece', unit_price: 420.00,  reorder_level: 300,   lead_time_days: 21 },
-      { sku: 'PWR-ADAPTER-12V2A',    name: '12V 2A DC Power Adapter with ISI Mark',  category: 'Power',              unit: 'piece', unit_price: 545.00,  reorder_level: 200,   lead_time_days: 14 },
-      { sku: 'CONN-USBC-SMD-16PIN',  name: 'USB Type-C Receptacle SMD 16-Pin',       category: 'Connectors',         unit: 'piece', unit_price: 38.00,   reorder_level: 2000,  lead_time_days: 21 },
-      { sku: 'CONN-HDR-40M-254MM',   name: '40-Pin 2.54mm Male Pin Header',           category: 'Connectors',         unit: 'piece', unit_price: 12.00,   reorder_level: 3000,  lead_time_days: 21 },
-      { sku: 'PCB-FR4-100X80-2L',    name: 'FR4 PCB 100×80mm 2-Layer 1.6mm',         category: 'PCBs',               unit: 'piece', unit_price: 95.00,   reorder_level: 500,   lead_time_days: 21 },
-      { sku: 'SOLD-LFREE-08MM-250G', name: 'Lead-Free Solder Wire 0.8mm 250g Reel',  category: 'Consumables',        unit: 'reel',  unit_price: 980.00,  reorder_level: 50,    lead_time_days: 7  },
+      { sku: 'PHONE-IPH15-128',   name: 'Apple iPhone 15 128GB Midnight',        category: 'Smartphones',    unit: 'piece', unit_price: 79900,  reorder_level: 50,  lead_time_days: 10 },
+      { sku: 'PHONE-IPH15-256',   name: 'Apple iPhone 15 256GB Pink',            category: 'Smartphones',    unit: 'piece', unit_price: 89900,  reorder_level: 30,  lead_time_days: 10 },
+      { sku: 'PHONE-SGS24-256',   name: 'Samsung Galaxy S24 256GB Onyx Black',   category: 'Smartphones',    unit: 'piece', unit_price: 74999,  reorder_level: 50,  lead_time_days: 7  },
+      { sku: 'PHONE-SGA54-128',   name: 'Samsung Galaxy A54 128GB Awesome Navy', category: 'Smartphones',    unit: 'piece', unit_price: 38999,  reorder_level: 80,  lead_time_days: 7  },
+      { sku: 'PHONE-OP12-256',    name: 'OnePlus 12 256GB Silky Black',           category: 'Smartphones',    unit: 'piece', unit_price: 64999,  reorder_level: 40,  lead_time_days: 7  },
+      { sku: 'LAPTOP-MBA-M2-256', name: 'Apple MacBook Air M2 256GB Space Grey', category: 'Laptops',        unit: 'piece', unit_price: 114900, reorder_level: 20,  lead_time_days: 14 },
+      { sku: 'LAPTOP-DELL-I5',    name: 'Dell Inspiron 15 Intel i5 512GB',       category: 'Laptops',        unit: 'piece', unit_price: 62990,  reorder_level: 20,  lead_time_days: 10 },
+      { sku: 'TV-SAM-55-4K',      name: 'Samsung 55" Crystal 4K UHD Smart TV',   category: 'Televisions',    unit: 'piece', unit_price: 54990,  reorder_level: 15,  lead_time_days: 7  },
+      { sku: 'AUDIO-BOAT-141',    name: 'boAt Airdopes 141 TWS Earbuds',         category: 'Audio',          unit: 'piece', unit_price: 1299,   reorder_level: 200, lead_time_days: 5  },
+      { sku: 'AUDIO-BOAT-R450',   name: 'boAt Rockerz 450 Wireless Headphones',  category: 'Audio',          unit: 'piece', unit_price: 1799,   reorder_level: 150, lead_time_days: 5  },
+      { sku: 'AUDIO-SONY-XM5',    name: 'Sony WH-1000XM5 Noise Cancelling',      category: 'Audio',          unit: 'piece', unit_price: 29990,  reorder_level: 20,  lead_time_days: 10 },
+      { sku: 'ACC-ANKER-65W',     name: 'Anker 65W GaN USB-C Charger',           category: 'Accessories',    unit: 'piece', unit_price: 2999,   reorder_level: 100, lead_time_days: 7  },
+      { sku: 'ACC-ANKER-PB20K',   name: 'Anker PowerCore 20000mAh Power Bank',   category: 'Accessories',    unit: 'piece', unit_price: 3499,   reorder_level: 100, lead_time_days: 7  },
+      { sku: 'ACC-CABLE-USBC2M',  name: 'Anker USB-C to USB-C Cable 2m 100W',    category: 'Accessories',    unit: 'piece', unit_price: 899,    reorder_level: 200, lead_time_days: 7  },
+      { sku: 'ACC-CASE-IPH15',    name: 'Apple iPhone 15 Silicone Case Black',   category: 'Accessories',    unit: 'piece', unit_price: 3900,   reorder_level: 100, lead_time_days: 10 },
     ];
 
     const pid = {};
@@ -175,264 +175,238 @@ async function seed() {
     }
     console.log('Products created...');
 
-    // ── Supplier Products (prices in INR) ─────────────────────────────────────
-    // Mouser India — MCU modules, displays, batteries
+    // ── Supplier Products ──────────────────────────────────────────────────────
+    // Samsung India
     for (const [sku, price, moq, ltd] of [
-      ['MCU-ESP32-WROOM32',    188.00,  100, 7 ],
-      ['MCU-STM32F103C8T6',    78.00,   500, 7 ],
-      ['DISP-TFT-7IN-800X480', 1100.00, 50,  14],
-      ['DISP-OLED-096-128X64', 175.00,  200, 14],
-      ['BAT-LIPO-3000MAH',     285.00,  100, 21],
+      ['PHONE-SGS24-256',  62000, 10,  7],
+      ['PHONE-SGA54-128',  31000, 20,  7],
+      ['TV-SAM-55-4K',     42000, 5,   7],
     ]) {
       await client.query(`
         INSERT INTO supplier_products (supplier_id, product_id, unit_price, lead_time_days, min_order_qty, is_preferred)
         VALUES ($1,$2,$3,$4,$5,TRUE)
-      `, [sup.mouser, pid[sku], price, ltd, moq]);
+      `, [sup.samsung, pid[sku], price, ltd, moq]);
     }
 
-    // Electrocomponents India — semiconductors, passives, connectors
+    // Apple India
     for (const [sku, price, moq, ltd] of [
-      ['SEMI-IRLZ44N-MOSFET', 42.00, 500,   10],
-      ['REG-AMS1117-33',       11.50, 1000,  10],
-      ['CAP-ELEC-10UF-50V',   4.20,  5000,  10],
-      ['CONN-USBC-SMD-16PIN',  26.00, 1000,  10],
-      ['CONN-HDR-40M-254MM',   8.00,  2000,  7 ],
+      ['PHONE-IPH15-128',   72000, 5,  10],
+      ['PHONE-IPH15-256',   81000, 5,  10],
+      ['LAPTOP-MBA-M2-256', 105000, 3, 14],
+      ['ACC-CASE-IPH15',    3200,  20, 10],
     ]) {
       await client.query(`
         INSERT INTO supplier_products (supplier_id, product_id, unit_price, lead_time_days, min_order_qty, is_preferred)
         VALUES ($1,$2,$3,$4,$5,TRUE)
-      `, [sup.electro, pid[sku], price, ltd, moq]);
+      `, [sup.apple, pid[sku], price, ltd, moq]);
     }
 
-    // SunTech PCB — PCBs + passives
+    // boAt
     for (const [sku, price, moq, ltd] of [
-      ['PCB-FR4-100X80-2L',  68.00, 200,   21],
-      ['CAP-MLCC-100NF-50V', 0.90,  10000, 21],
-      ['RES-10K-0402-1PCT',  0.45,  10000, 21],
+      ['AUDIO-BOAT-141',  850,  100, 5],
+      ['AUDIO-BOAT-R450', 1200, 50,  5],
     ]) {
       await client.query(`
         INSERT INTO supplier_products (supplier_id, product_id, unit_price, lead_time_days, min_order_qty, is_preferred)
         VALUES ($1,$2,$3,$4,$5,TRUE)
-      `, [sup.suntech, pid[sku], price, ltd, moq]);
+      `, [sup.boat, pid[sku], price, ltd, moq]);
     }
 
-    // Amara Raja — power + consumables
+    // Anker India
     for (const [sku, price, moq, ltd] of [
-      ['PWR-ADAPTER-12V2A',    395.00, 100, 14],
-      ['BAT-LIPO-3000MAH',     310.00, 50,  14],
-      ['SOLD-LFREE-08MM-250G', 745.00, 20,  7 ],
+      ['ACC-ANKER-65W',   2200, 50,  7],
+      ['ACC-ANKER-PB20K', 2600, 50,  7],
+      ['ACC-CABLE-USBC2M', 600, 100, 7],
     ]) {
       await client.query(`
         INSERT INTO supplier_products (supplier_id, product_id, unit_price, lead_time_days, min_order_qty, is_preferred)
         VALUES ($1,$2,$3,$4,$5,TRUE)
-      `, [sup.amara, pid[sku], price, ltd, moq]);
+      `, [sup.anker, pid[sku], price, ltd, moq]);
     }
     console.log('Supplier products created...');
 
-    // ── Purchase Orders (amounts in INR) ──────────────────────────────────────
+    // ── Purchase Orders ────────────────────────────────────────────────────────
     //
-    // Full pipeline snapshot:
-    //   received  — PO1 (Mouser → BLR, STM32 MCUs): completed via SHP-2026-0001 delivery
-    //   ordered   — PO2 (Mouser → PNQ, OLED + batteries): SHP-2026-0002 in transit
-    //   approved  — PO3 (SunTech → BLR, PCBs + passives): ready for shipment creation
-    //   pending   — PO4 (Electrocomponents → PNQ, MOSFETs + USB-C): awaiting admin approval
-    //   pending   — PO5 (Amara Raja → CHN, power adapters): awaiting admin approval
-    //   cancelled — PO6 (Amara Raja → BLR, solder wire): cancelled due to budget freeze
+    // Full pipeline snapshot (one PO at every stage):
+    //   PO-001  received   → iPhone 15 batch delivered to Delhi. Stock updated.
+    //   PO-002  ordered    → Samsung 55" TVs shipped, in transit to Mumbai.
+    //   PO-003  approved   → boAt earbuds approved. Procurement can now create shipment.
+    //   PO-004  pending    → Samsung Galaxy S24 restock. Awaiting admin approval.
+    //   PO-005  pending    → Anker accessories restock. Awaiting admin approval.
+    //   PO-006  cancelled  → MacBook Air order cancelled due to Q3 budget cut.
 
-    // PO-2026-0001: RECEIVED — 2,000 STM32 MCUs from Mouser, Bengaluru
-    // 2000 × ₹78 = ₹1,56,000  |  received via SHP-2026-0001 (delivered)
+    // PO-001: RECEIVED — 100 iPhone 15 128GB from Apple India, Delhi
     const { rows: [po1] } = await client.query(`
       INSERT INTO purchase_orders
         (po_number, supplier_id, warehouse_id, status, total_amount,
          ordered_by, approved_by, notes, order_date, expected_date)
-      VALUES ('PO-2026-0001', $1, $2, 'received', 156000.00, $3, $4,
-              'Emergency restock — Bengaluru production line critical. All 2,000 units delivered via SHP-2026-0001, QC passed.',
-              '2026-06-01', '2026-06-08')
+      VALUES ('PO-2026-0001', $1, $2, 'received', 7200000.00, $3, $4,
+              'Diwali season restock — 100 units iPhone 15 128GB for Delhi NCR region. All units received and QC passed.',
+              '2026-06-15', '2026-06-25')
       RETURNING id
-    `, [sup.mouser, wh.blr, u.procure, u.admin]);
+    `, [sup.apple, wh.del, u.procure, u.admin]);
 
     await client.query(`
       INSERT INTO purchase_order_items
         (purchase_order_id, product_id, quantity, unit_price, received_quantity)
-      VALUES ($1, $2, 2000, 78.00, 2000)
-    `, [po1.id, pid['MCU-STM32F103C8T6']]);
+      VALUES ($1, $2, 100, 72000.00, 100)
+    `, [po1.id, pid['PHONE-IPH15-128']]);
 
-    // PO-2026-0002: ORDERED — OLED displays + Li-Po batteries from Mouser, Pune
-    // 1000 × ₹175 + 500 × ₹285 = ₹1,75,000 + ₹1,42,500 = ₹3,17,500
-    // Auto-advanced from approved → ordered when SHP-2026-0002 was created
+    // PO-002: ORDERED — 30 Samsung 55" TVs from Samsung India, Mumbai
     const { rows: [po2] } = await client.query(`
       INSERT INTO purchase_orders
         (po_number, supplier_id, warehouse_id, status, total_amount,
          ordered_by, approved_by, notes, order_date, expected_date)
-      VALUES ('PO-2026-0002', $1, $2, 'ordered', 317500.00, $3, $4,
-              'Q2 OLED display and Li-Po battery restock for IoT-Mini V3 assembly line at Pune. GST invoice pending.',
-              '2026-06-10', '2026-07-08')
+      VALUES ('PO-2026-0002', $1, $2, 'ordered', 1260000.00, $3, $4,
+              'Q3 TV restock for Mumbai region retail partners. Shipment dispatched from Samsung warehouse, Noida.',
+              '2026-06-20', '2026-07-10')
       RETURNING id
-    `, [sup.mouser, wh.pnq, u.procure, u.admin]);
+    `, [sup.samsung, wh.mum, u.procure, u.admin]);
 
     await client.query(`
       INSERT INTO purchase_order_items
         (purchase_order_id, product_id, quantity, unit_price, received_quantity)
-      VALUES ($1, $2, 1000, 175.00, 0), ($1, $3, 500, 285.00, 0)
-    `, [po2.id, pid['DISP-OLED-096-128X64'], pid['BAT-LIPO-3000MAH']]);
+      VALUES ($1, $2, 30, 42000.00, 0)
+    `, [po2.id, pid['TV-SAM-55-4K']]);
 
-    // PO-2026-0003: APPROVED — FR4 PCBs + passives from SunTech, Bengaluru
-    // 1000 × ₹68 + 50000 × ₹0.90 + 80000 × ₹0.45 = ₹68,000 + ₹45,000 + ₹36,000 = ₹1,49,000
-    // Approved — procurement manager can now create a shipment (which will auto-advance to ordered)
+    // PO-003: APPROVED — 500 boAt Airdopes 141 from boAt, Hyderabad
     const { rows: [po3] } = await client.query(`
       INSERT INTO purchase_orders
         (po_number, supplier_id, warehouse_id, status, total_amount,
          ordered_by, approved_by, notes, order_date, expected_date)
-      VALUES ('PO-2026-0003', $1, $2, 'approved', 149000.00, $3, $4,
-              'Monthly PCB and passive component replenishment. SunTech confirmed 21-day lead time from Noida facility.',
-              '2026-06-18', '2026-07-15')
+      VALUES ('PO-2026-0003', $1, $2, 'approved', 425000.00, $3, $4,
+              'boAt earbuds are a fast-moving item in Hyderabad. Approved — procurement team to create shipment now.',
+              '2026-06-28', '2026-07-05')
       RETURNING id
-    `, [sup.suntech, wh.blr, u.procure, u.admin]);
+    `, [sup.boat, wh.hyd, u.procure, u.admin]);
 
     await client.query(`
       INSERT INTO purchase_order_items
         (purchase_order_id, product_id, quantity, unit_price, received_quantity)
-      VALUES ($1, $2, 1000, 68.00, 0), ($1, $3, 50000, 0.90, 0), ($1, $4, 80000, 0.45, 0)
-    `, [po3.id,
-        pid['PCB-FR4-100X80-2L'],
-        pid['CAP-MLCC-100NF-50V'],
-        pid['RES-10K-0402-1PCT']]);
+      VALUES ($1, $2, 500, 850.00, 0)
+    `, [po3.id, pid['AUDIO-BOAT-141']]);
 
-    // PO-2026-0004: PENDING — MOSFETs + USB-C from Electrocomponents, Pune
-    // 3000 × ₹42 + 5000 × ₹26 = ₹1,26,000 + ₹1,30,000 = ₹2,56,000
-    // Awaiting admin approval — MOSFET stock is below reorder threshold
+    // PO-004: PENDING — 50 Samsung Galaxy S24 from Samsung India, Delhi
     const { rows: [po4] } = await client.query(`
       INSERT INTO purchase_orders
         (po_number, supplier_id, warehouse_id, status, total_amount,
          ordered_by, notes, order_date, expected_date)
-      VALUES ('PO-2026-0004', $1, $2, 'pending', 256000.00, $3,
-              'Pune line — IRLZ44N MOSFET stock critically low. USB-C connectors also low. Requesting urgent admin approval.',
-              '2026-06-22', '2026-07-20')
+      VALUES ('PO-2026-0004', $1, $2, 'pending', 3100000.00, $3,
+              'Delhi stock of Galaxy S24 is below reorder level. Urgent — Samsung is offering a 2% early order discount valid until 15-Jul-2026.',
+              '2026-07-01', '2026-07-10')
       RETURNING id
-    `, [sup.electro, wh.pnq, u.procure]);
+    `, [sup.samsung, wh.del, u.procure]);
 
     await client.query(`
       INSERT INTO purchase_order_items
         (purchase_order_id, product_id, quantity, unit_price, received_quantity)
-      VALUES ($1, $2, 3000, 42.00, 0), ($1, $3, 5000, 26.00, 0)
-    `, [po4.id, pid['SEMI-IRLZ44N-MOSFET'], pid['CONN-USBC-SMD-16PIN']]);
+      VALUES ($1, $2, 50, 62000.00, 0)
+    `, [po4.id, pid['PHONE-SGS24-256']]);
 
-    // PO-2026-0005: PENDING — Power adapters from Amara Raja, Chennai
-    // 200 × ₹395 = ₹79,000
+    // PO-005: PENDING — Anker accessories restock, Mumbai
     const { rows: [po5] } = await client.query(`
       INSERT INTO purchase_orders
         (po_number, supplier_id, warehouse_id, status, total_amount,
          ordered_by, notes, order_date, expected_date)
-      VALUES ('PO-2026-0005', $1, $2, 'pending', 79000.00, $3,
-              'Chennai hub Q3 power adapter planning. Amara Raja quote valid until 30-Jul-2026.',
-              '2026-06-25', '2026-07-31')
+      VALUES ('PO-2026-0005', $1, $2, 'pending', 540000.00, $3,
+              'Anker 65W chargers and power banks running low in Mumbai. High attach-rate with phone sales. Please approve.',
+              '2026-07-02', '2026-07-12')
       RETURNING id
-    `, [sup.amara, wh.chn, u.procure]);
+    `, [sup.anker, wh.mum, u.procure]);
 
     await client.query(`
       INSERT INTO purchase_order_items
         (purchase_order_id, product_id, quantity, unit_price, received_quantity)
-      VALUES ($1, $2, 200, 395.00, 0)
-    `, [po5.id, pid['PWR-ADAPTER-12V2A']]);
+      VALUES ($1, $2, 100, 2200.00, 0), ($1, $3, 100, 2600.00, 0)
+    `, [po5.id, pid['ACC-ANKER-65W'], pid['ACC-ANKER-PB20K']]);
 
-    // PO-2026-0006: CANCELLED — Solder wire from Amara Raja, Bengaluru
-    // 100 × ₹745 = ₹74,500 — cancelled due to Q2 budget freeze
+    // PO-006: CANCELLED — MacBook Air from Apple India, Delhi
     const { rows: [po6] } = await client.query(`
       INSERT INTO purchase_orders
         (po_number, supplier_id, warehouse_id, status, total_amount,
          ordered_by, notes, order_date)
-      VALUES ('PO-2026-0006', $1, $2, 'cancelled', 74500.00, $3,
-              'Cancelled — Q2 budget freeze. Solder wire stock not critical yet. Will raise fresh PO in Q3.',
-              '2026-06-15')
+      VALUES ('PO-2026-0006', $1, $2, 'cancelled', 1050000.00, $3,
+              'Cancelled — Q3 laptop budget reallocated to smartphone inventory. Will reconsider in Q4.',
+              '2026-06-25')
       RETURNING id
-    `, [sup.amara, wh.blr, u.procure]);
+    `, [sup.apple, wh.del, u.procure]);
 
     await client.query(`
       INSERT INTO purchase_order_items
         (purchase_order_id, product_id, quantity, unit_price, received_quantity)
-      VALUES ($1, $2, 100, 745.00, 0)
-    `, [po6.id, pid['SOLD-LFREE-08MM-250G']]);
+      VALUES ($1, $2, 10, 105000.00, 0)
+    `, [po6.id, pid['LAPTOP-MBA-M2-256']]);
 
     console.log('Purchase orders created...');
 
     // ── Shipments ──────────────────────────────────────────────────────────────
     //
-    // SHP-2026-0001: DELIVERED → PO1 (Mouser → BLR, STM32 MCUs)
-    //   Delivery triggered: PO1 marked received + BLR STM32 inventory credited
-    //
-    // SHP-2026-0002: IN_TRANSIT → PO2 (Mouser → PNQ, OLED + batteries)
-    //   Creation triggered: PO2 auto-advanced from approved → ordered
+    // SHP-001: DELIVERED → PO-001 (Apple iPhones → Delhi). Stock already updated.
+    // SHP-002: IN_TRANSIT → PO-002 (Samsung TVs → Mumbai). Expected 10-Jul.
 
     const { rows: [shp1] } = await client.query(`
       INSERT INTO shipments
         (shipment_number, purchase_order_id, warehouse_id, status,
          carrier, tracking_number, shipped_date, expected_arrival, actual_arrival, notes)
       VALUES ('SHP-2026-0001', $1, $2, 'delivered',
-              'DTDC Courier & Cargo', 'DTDC-B2B-77234100',
-              '2026-06-02', '2026-06-08', '2026-06-07',
-              'Delivered one day ahead of schedule. All 2,000 STM32 units inspected — QC report ref: QC-BLR-2026-0247.')
+              'Blue Dart Express', 'BD-APL-9988123-DEL',
+              '2026-06-16', '2026-06-25', '2026-06-24',
+              'Delivered one day early. All 100 iPhone 15 units received and counted. IMEI verification complete.')
       RETURNING id
-    `, [po1.id, wh.blr]);
+    `, [po1.id, wh.del]);
 
     await client.query(`
       INSERT INTO shipments
         (shipment_number, purchase_order_id, warehouse_id, status,
          carrier, tracking_number, shipped_date, expected_arrival, notes)
       VALUES ('SHP-2026-0002', $1, $2, 'in_transit',
-              'Blue Dart Express', 'BD-9934421-MUM-PNQ',
-              '2026-06-12', '2026-07-08',
-              'Dispatched from Mouser Mumbai warehouse. In transit to Pune facility via Blue Dart Express cargo.')
-    `, [po2.id, wh.pnq]);
+              'DTDC Courier & Cargo', 'DTDC-SAM-TV-44219-MUM',
+              '2026-06-22', '2026-07-10',
+              'Dispatched from Samsung Noida warehouse. 30 units of 55" TVs in 30 individual cartons. Handle with care.')
+    `, [po2.id, wh.mum]);
 
     console.log('Shipments created...');
 
-    // ── Inventory Items ────────────────────────────────────────────────────────
-    //
-    // BLR STM32 qty (2087) = 87 pre-PO baseline + 2,000 received via SHP-2026-0001
-    // All other quantities reflect current physical stock.
-
+    // ── Inventory ──────────────────────────────────────────────────────────────
     const inventoryData = [
-      // Bengaluru Assembly Plant
-      { wh: wh.blr, sku: 'MCU-ESP32-WROOM32',    qty: 1240,  rp: 500   },
-      { wh: wh.blr, sku: 'MCU-STM32F103C8T6',    qty: 2087,  rp: 1000  }, // restocked by SHP-2026-0001
-      { wh: wh.blr, sku: 'CAP-ELEC-10UF-50V',    qty: 28400, rp: 5000  },
-      { wh: wh.blr, sku: 'CAP-MLCC-100NF-50V',   qty: 62000, rp: 10000 },
-      { wh: wh.blr, sku: 'RES-10K-0402-1PCT',    qty: 95000, rp: 10000 },
-      { wh: wh.blr, sku: 'SEMI-IRLZ44N-MOSFET',  qty: 3400,  rp: 2000  },
-      { wh: wh.blr, sku: 'REG-AMS1117-33',        qty: 7200,  rp: 3000  },
-      { wh: wh.blr, sku: 'DISP-TFT-7IN-800X480', qty: 210,   rp: 100   },
-      { wh: wh.blr, sku: 'DISP-OLED-096-128X64', qty: 38,    rp: 500   }, // CRITICAL — no active shipment
-      { wh: wh.blr, sku: 'BAT-LIPO-3000MAH',     qty: 520,   rp: 300   },
-      { wh: wh.blr, sku: 'PWR-ADAPTER-12V2A',    qty: 340,   rp: 200   },
-      { wh: wh.blr, sku: 'CONN-USBC-SMD-16PIN',  qty: 4800,  rp: 2000  },
-      { wh: wh.blr, sku: 'CONN-HDR-40M-254MM',   qty: 6200,  rp: 3000  },
-      { wh: wh.blr, sku: 'PCB-FR4-100X80-2L',    qty: 890,   rp: 500   },
-      { wh: wh.blr, sku: 'SOLD-LFREE-08MM-250G', qty: 42,    rp: 50    }, // LOW — PO6 was cancelled
-      // Pune Manufacturing Facility
-      { wh: wh.pnq, sku: 'MCU-ESP32-WROOM32',    qty: 680,   rp: 500   },
-      { wh: wh.pnq, sku: 'MCU-STM32F103C8T6',    qty: 1450,  rp: 1000  },
-      { wh: wh.pnq, sku: 'CAP-ELEC-10UF-50V',    qty: 15000, rp: 5000  },
-      { wh: wh.pnq, sku: 'CAP-MLCC-100NF-50V',   qty: 44000, rp: 10000 },
-      { wh: wh.pnq, sku: 'RES-10K-0402-1PCT',    qty: 71000, rp: 10000 },
-      { wh: wh.pnq, sku: 'SEMI-IRLZ44N-MOSFET',  qty: 1800,  rp: 2000  }, // LOW — PO4 pending
-      { wh: wh.pnq, sku: 'REG-AMS1117-33',        qty: 4100,  rp: 3000  },
-      { wh: wh.pnq, sku: 'DISP-TFT-7IN-800X480', qty: 95,    rp: 100   },
-      { wh: wh.pnq, sku: 'DISP-OLED-096-128X64', qty: 620,   rp: 500   },
-      { wh: wh.pnq, sku: 'BAT-LIPO-3000MAH',     qty: 280,   rp: 300   }, // LOW — SHP-2026-0002 in transit
-      { wh: wh.pnq, sku: 'PWR-ADAPTER-12V2A',    qty: 415,   rp: 200   },
-      { wh: wh.pnq, sku: 'CONN-USBC-SMD-16PIN',  qty: 3300,  rp: 2000  },
-      { wh: wh.pnq, sku: 'CONN-HDR-40M-254MM',   qty: 5100,  rp: 3000  },
-      { wh: wh.pnq, sku: 'PCB-FR4-100X80-2L',    qty: 420,   rp: 500   }, // LOW — PO4 pending approval
-      { wh: wh.pnq, sku: 'SOLD-LFREE-08MM-250G', qty: 88,    rp: 50    },
-      // Chennai Distribution Hub
-      { wh: wh.chn, sku: 'MCU-ESP32-WROOM32',    qty: 920,   rp: 500   },
-      { wh: wh.chn, sku: 'MCU-STM32F103C8T6',    qty: 2100,  rp: 1000  },
-      { wh: wh.chn, sku: 'SEMI-IRLZ44N-MOSFET',  qty: 2600,  rp: 2000  },
-      { wh: wh.chn, sku: 'REG-AMS1117-33',        qty: 5800,  rp: 3000  },
-      { wh: wh.chn, sku: 'DISP-TFT-7IN-800X480', qty: 160,   rp: 100   },
-      { wh: wh.chn, sku: 'PWR-ADAPTER-12V2A',    qty: 510,   rp: 200   },
-      { wh: wh.chn, sku: 'CONN-USBC-SMD-16PIN',  qty: 6400,  rp: 2000  },
-      { wh: wh.chn, sku: 'BAT-LIPO-3000MAH',     qty: 740,   rp: 300   },
+      // Delhi NCR Warehouse
+      { wh: wh.del, sku: 'PHONE-IPH15-128',   qty: 112,  rp: 50  }, // boosted by SHP-001
+      { wh: wh.del, sku: 'PHONE-IPH15-256',   qty: 28,   rp: 30  }, // LOW — near reorder
+      { wh: wh.del, sku: 'PHONE-SGS24-256',   qty: 18,   rp: 50  }, // CRITICAL — PO-004 pending
+      { wh: wh.del, sku: 'PHONE-SGA54-128',   qty: 95,   rp: 80  },
+      { wh: wh.del, sku: 'PHONE-OP12-256',    qty: 44,   rp: 40  },
+      { wh: wh.del, sku: 'LAPTOP-MBA-M2-256', qty: 22,   rp: 20  },
+      { wh: wh.del, sku: 'LAPTOP-DELL-I5',    qty: 31,   rp: 20  },
+      { wh: wh.del, sku: 'AUDIO-BOAT-141',    qty: 310,  rp: 200 },
+      { wh: wh.del, sku: 'AUDIO-SONY-XM5',    qty: 14,   rp: 20  }, // LOW
+      { wh: wh.del, sku: 'ACC-ANKER-65W',     qty: 88,   rp: 100 }, // LOW
+      { wh: wh.del, sku: 'ACC-ANKER-PB20K',   qty: 74,   rp: 100 }, // LOW
+      { wh: wh.del, sku: 'ACC-CABLE-USBC2M',  qty: 245,  rp: 200 },
+      { wh: wh.del, sku: 'ACC-CASE-IPH15',    qty: 180,  rp: 100 },
+
+      // Mumbai Fulfilment Center
+      { wh: wh.mum, sku: 'PHONE-IPH15-128',   qty: 68,   rp: 50  },
+      { wh: wh.mum, sku: 'PHONE-IPH15-256',   qty: 45,   rp: 30  },
+      { wh: wh.mum, sku: 'PHONE-SGS24-256',   qty: 62,   rp: 50  },
+      { wh: wh.mum, sku: 'PHONE-SGA54-128',   qty: 110,  rp: 80  },
+      { wh: wh.mum, sku: 'TV-SAM-55-4K',      qty: 8,    rp: 15  }, // LOW — SHP-002 in transit
+      { wh: wh.mum, sku: 'AUDIO-BOAT-141',    qty: 420,  rp: 200 },
+      { wh: wh.mum, sku: 'AUDIO-BOAT-R450',   qty: 195,  rp: 150 },
+      { wh: wh.mum, sku: 'ACC-ANKER-65W',     qty: 92,   rp: 100 }, // LOW — PO-005 pending
+      { wh: wh.mum, sku: 'ACC-ANKER-PB20K',   qty: 85,   rp: 100 }, // LOW — PO-005 pending
+      { wh: wh.mum, sku: 'ACC-CABLE-USBC2M',  qty: 380,  rp: 200 },
+      { wh: wh.mum, sku: 'ACC-CASE-IPH15',    qty: 210,  rp: 100 },
+
+      // Hyderabad Distribution Hub
+      { wh: wh.hyd, sku: 'PHONE-IPH15-128',   qty: 55,   rp: 50  },
+      { wh: wh.hyd, sku: 'PHONE-SGS24-256',   qty: 70,   rp: 50  },
+      { wh: wh.hyd, sku: 'PHONE-SGA54-128',   qty: 130,  rp: 80  },
+      { wh: wh.hyd, sku: 'PHONE-OP12-256',    qty: 48,   rp: 40  },
+      { wh: wh.hyd, sku: 'AUDIO-BOAT-141',    qty: 95,   rp: 200 }, // CRITICAL — PO-003 approved, needs shipment
+      { wh: wh.hyd, sku: 'AUDIO-BOAT-R450',   qty: 88,   rp: 150 }, // LOW
+      { wh: wh.hyd, sku: 'AUDIO-SONY-XM5',    qty: 26,   rp: 20  },
+      { wh: wh.hyd, sku: 'ACC-ANKER-65W',     qty: 145,  rp: 100 },
+      { wh: wh.hyd, sku: 'ACC-CABLE-USBC2M',  qty: 290,  rp: 200 },
     ];
 
     const invId = {};
@@ -446,48 +420,41 @@ async function seed() {
     console.log('Inventory created...');
 
     // ── Stock Movements ────────────────────────────────────────────────────────
-    // Delivery of SHP-2026-0001 — 2,000 STM32 MCUs into Bengaluru
-    const stm32BLR = invId[`${wh.blr}_MCU-STM32F103C8T6`];
-    if (stm32BLR) {
+
+    // SHP-001 delivered — 100 iPhone 15 128GB into Delhi
+    const iph15DEL = invId[`${wh.del}_PHONE-IPH15-128`];
+    if (iph15DEL) {
       await client.query(`
         INSERT INTO stock_movements
           (inventory_item_id, warehouse_id, product_id, movement_type,
            quantity, reference_type, reference_id, notes, created_by)
-        VALUES ($1,$2,$3,'IN',2000,'shipment',$4,
-                'Received via shipment SHP-2026-0001 — DTDC-B2B-77234100. QC report: QC-BLR-2026-0247.',$5)
-      `, [stm32BLR, wh.blr, pid['MCU-STM32F103C8T6'], shp1.id, u.staffBLR]);
+        VALUES ($1,$2,$3,'IN',100,'shipment',$4,
+                'Received via SHP-2026-0001 — Blue Dart BD-APL-9988123-DEL. All 100 units verified.',$5)
+      `, [iph15DEL, wh.del, pid['PHONE-IPH15-128'], shp1.id, u.staffDEL]);
     }
 
-    // Assembly line consumption — ESP32 modules used in production (BLR)
-    const esp32BLR = invId[`${wh.blr}_MCU-ESP32-WROOM32`];
-    if (esp32BLR) {
+    // Sales dispatch — 32 Samsung Galaxy S24 sold from Delhi store
+    const sgs24DEL = invId[`${wh.del}_PHONE-SGS24-256`];
+    if (sgs24DEL) {
       await client.query(`
         INSERT INTO stock_movements
           (inventory_item_id, warehouse_id, product_id, movement_type,
            quantity, reference_type, notes, created_by)
-        VALUES ($1,$2,$3,'OUT',360,'manual',
-                'IoT-Mini V3 production batch — Week 24/2026',$4)
-      `, [esp32BLR, wh.blr, pid['MCU-ESP32-WROOM32'], u.staffBLR]);
-
-      await client.query(`
-        INSERT INTO stock_movements
-          (inventory_item_id, warehouse_id, product_id, movement_type,
-           quantity, reference_type, notes, created_by)
-        VALUES ($1,$2,$3,'ADJUSTMENT',-15,'manual',
-                'Cycle count correction — 15 units found damaged during QC inspection',$4)
-      `, [esp32BLR, wh.blr, pid['MCU-ESP32-WROOM32'], u.staffBLR]);
+        VALUES ($1,$2,$3,'OUT',32,'manual',
+                'Sales dispatch to Delhi retail partners — Week 26 batch',$4)
+      `, [sgs24DEL, wh.del, pid['PHONE-SGS24-256'], u.staffDEL]);
     }
 
-    // Power board assembly batch — MOSFET usage at Pune
-    const mosfetPNQ = invId[`${wh.pnq}_SEMI-IRLZ44N-MOSFET`];
-    if (mosfetPNQ) {
+    // Sales dispatch — 105 boAt earbuds sold from Hyderabad
+    const boat141HYD = invId[`${wh.hyd}_AUDIO-BOAT-141`];
+    if (boat141HYD) {
       await client.query(`
         INSERT INTO stock_movements
           (inventory_item_id, warehouse_id, product_id, movement_type,
            quantity, reference_type, notes, created_by)
-        VALUES ($1,$2,$3,'OUT',200,'manual',
-                'Power board assembly batch PNQ-WK25-2026',$4)
-      `, [mosfetPNQ, wh.pnq, pid['SEMI-IRLZ44N-MOSFET'], u.staffPNQ]);
+        VALUES ($1,$2,$3,'OUT',105,'manual',
+                'Sales dispatch to Hyderabad retail partners — high demand post sale event',$4)
+      `, [boat141HYD, wh.hyd, pid['AUDIO-BOAT-141'], u.staffDEL]);
     }
 
     console.log('Stock movements created...');
@@ -497,69 +464,62 @@ async function seed() {
       INSERT INTO alerts (type, severity, title, message, warehouse_id, product_id)
       VALUES
         ('low_stock', 'critical',
-         'OLED Display (0.96") near stockout — Bengaluru Plant',
-         'Current stock: 38 units against reorder point of 500. IoT-Mini V3 assembly line impacted. No active shipment exists — raise a Purchase Order immediately to restock.',
+         'boAt Airdopes 141 near stockout — Hyderabad Hub',
+         'Current stock: 95 units against reorder point of 200. PO-2026-0003 (₹4.25L) is already approved — create a shipment now to advance it to ordered and unblock restocking.',
          $1, $2),
 
-        ('low_stock', 'high',
-         'Power MOSFET (IRLZ44N) below reorder point — Pune Facility',
-         'Current stock: 1,800 units. Reorder point: 2,000. PO-2026-0004 (₹2,56,000) is pending admin approval — approve to unblock Pune production.',
+        ('low_stock', 'critical',
+         'Samsung Galaxy S24 critically low — Delhi NCR',
+         'Current stock: 18 units against reorder point of 50. PO-2026-0004 (₹31L) is awaiting admin approval. Samsung early-order discount expires 15-Jul-2026.',
          $3, $4),
 
         ('low_stock', 'high',
-         'Li-Po Battery (3000mAh) running low — Pune Facility',
-         'Current stock: 280 units. Reorder point: 300. SHP-2026-0002 carrying 500 units in transit via Blue Dart, expected 08-Jul-2026. Monitor closely.',
-         $3, $5),
+         'Samsung 55" Smart TV low — Mumbai Fulfilment',
+         'Current stock: 8 units against reorder point of 15. SHP-2026-0002 carrying 30 units is in transit via DTDC, expected 10-Jul-2026. Monitor for delays.',
+         $5, $6),
+
+        ('low_stock', 'high',
+         'Anker 65W Charger below reorder point — Mumbai',
+         'Current stock: 92 units against reorder point of 100. PO-2026-0005 (₹5.4L) is pending admin approval. High attach-rate with phone sales — approve urgently.',
+         $5, $7),
 
         ('low_stock', 'medium',
-         'FR4 PCBs below reorder threshold — Pune Facility',
-         'Current stock: 420 units. Reorder point: 500. PO-2026-0004 pending admin approval includes USB-C connectors but not PCBs — consider raising a separate PCB order.',
-         $3, $6),
-
-        ('low_stock', 'medium',
-         'Lead-Free Solder Wire low — Bengaluru Plant',
-         'Current stock: 42 reels. Reorder point: 50. PO-2026-0006 was cancelled due to Q2 budget freeze. Raise a replacement PO from Amara Raja for Q3.',
-         $1, $7),
+         'Apple iPhone 15 256GB running low — Delhi NCR',
+         'Current stock: 28 units against reorder point of 30. Consider raising a new purchase order from Apple India before stock drops further.',
+         $3, $8),
 
         ('delayed_shipment', 'low',
-         'SHP-2026-0002 — Monitor Blue Dart Shipment',
-         'Blue Dart shipment BD-9934421-MUM-PNQ from Mouser India expected 08-Jul-2026. Track for any customs or transit delays. Contact Blue Dart helpline: 1860-233-1234.',
-         $3, NULL)
+         'SHP-2026-0002 — Monitor Samsung TV Shipment',
+         'DTDC shipment DTDC-SAM-TV-44219-MUM from Samsung Noida is expected 10-Jul-2026. Track for any transit delays — 30 TVs for Mumbai retail partners are pending this delivery.',
+         $5, NULL)
     `, [
-      wh.blr, pid['DISP-OLED-096-128X64'],
-      wh.pnq,
-      pid['SEMI-IRLZ44N-MOSFET'],
-      pid['BAT-LIPO-3000MAH'],
-      pid['PCB-FR4-100X80-2L'],
-      pid['SOLD-LFREE-08MM-250G'],
+      wh.hyd, pid['AUDIO-BOAT-141'],
+      wh.del, pid['PHONE-SGS24-256'],
+      wh.mum, pid['TV-SAM-55-4K'],
+      pid['ACC-ANKER-65W'],
+      pid['PHONE-IPH15-256'],
     ]);
 
     console.log('Alerts created...');
 
     await client.query('COMMIT');
 
-    console.log('\n✅ Seed complete — TechVolt Electronics Pvt. Ltd.\n');
-    console.log('Demo accounts:');
-    console.log('  r.iyer@techvolt.in              / RIyer@TechVolt26       (admin)');
-    console.log('  a.krishnamurthy@techvolt.in     / AKrishna@TechVolt26    (procurement_manager)');
-    console.log('  s.babu@techvolt.in              / SBabu@TechVolt26       (warehouse_staff → Bengaluru)');
-    console.log('  p.deshmukh@techvolt.in          / PDeshmukh@TechVolt26   (warehouse_staff → Pune)');
-    console.log('  v.mehta@mouser-india.com        / VMehta@Mouser26        (supplier → Mouser India)');
-    console.log('  d.nair@electrocomponents.in     / DNair@Electro26        (supplier → Electrocomponents)');
-    console.log('  k.sundaram@techvolt.in          / KSundaram@TechVolt26   (viewer — Finance & Accounts)');
-    console.log('\nData summary:');
-    console.log('  3 warehouses   (Bengaluru, Pune, Chennai)');
-    console.log('  4 suppliers    (Mouser India, Electrocomponents, SunTech PCB, Amara Raja)');
-    console.log('  15 products    (MCUs, passives, displays, power, connectors, PCBs, consumables)');
-    console.log('  37 inventory   records across 3 warehouses');
-    console.log('  6 purchase orders: received(1), ordered(1), approved(1), pending(2), cancelled(1)');
-    console.log('  2 shipments:   SHP-0001 delivered → BLR STM32  |  SHP-0002 in_transit → PNQ OLED+battery');
-    console.log('  3 stock moves: 1× IN (shipment delivery), 2× OUT/ADJUSTMENT (production usage)');
-    console.log('  6 alerts:      1 critical, 2 high, 2 medium, 1 low');
-    console.log('\nPipeline state:');
-    console.log('  pending → approved → ordered → received  (full flow shown via PO1+SHP1)');
-    console.log('  PO3 approved:  procurement can create a shipment (auto-advances to ordered)');
-    console.log('  PO4/PO5 pending: admin can approve them');
+    console.log('\n✅ Seed complete — NovaMart Distribution Pvt. Ltd.\n');
+    console.log('Login accounts:');
+    console.log('  p.sharma@novamart.in            / PSharma@Nova26        (admin)');
+    console.log('  r.gupta@novamart.in             / RGupta@Nova26         (procurement_manager)');
+    console.log('  d.kumar@novamart.in             / DKumar@Nova26         (warehouse_staff → Delhi)');
+    console.log('  s.patel@novamart.in             / SPatel@Nova26         (warehouse_staff → Mumbai)');
+    console.log('  a.malhotra@samsung-india.com    / AMalhotra@Samsung26   (supplier → Samsung India)');
+    console.log('  r.sharma@boat-lifestyle.com     / RSharma@Boat26        (supplier → boAt)');
+    console.log('  r.agarwal@novamart.in           / RAgarwal@Nova26       (viewer)');
+    console.log('\nFull flow walkthrough:');
+    console.log('  1. Log in as admin (p.sharma@novamart.in)');
+    console.log('  2. Approve PO-2026-0004 (Galaxy S24) and PO-2026-0005 (Anker accessories)');
+    console.log('  3. Log in as procurement (r.gupta@novamart.in)');
+    console.log('  4. Create a shipment for PO-2026-0003 (boAt earbuds) — advances PO to ordered');
+    console.log('  5. Mark SHP-2026-0002 (Samsung TVs) as delivered — stock auto-updates');
+    console.log('  6. Check dashboard for live KPIs and alerts');
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('Seed failed:', err.message);

@@ -60,7 +60,7 @@ export default function Inventory() {
   const { toast } = useToast()
   const { user }  = useAuth()
   const canAdjust = ['admin', 'procurement_manager', 'warehouse_staff'].includes(user?.role)
-  const canAdd    = ['admin', 'procurement_manager'].includes(user?.role)
+  const canAdd    = user?.role === 'admin'
 
   const load = useCallback(() => {
     setLoading(true)

@@ -9,7 +9,7 @@ const ROLE_PERMISSIONS = {
   admin: ['*'],
 
   procurement_manager: [
-    'products:read', 'products:write',
+    'products:read',
     'suppliers:read', 'suppliers:write',
     'warehouses:read', 'warehouses:write',
     'supplier_products:read', 'supplier_products:write',
